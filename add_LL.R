@@ -1,4 +1,4 @@
-###
+
 ################################  outFUN fitting function #####################################
 add_LL <- function(DATA_INPUT,input_country){ #feed in the sample (bbb), along with the number of the file you want to name (a0)
   outMat_SIR = apply(DATA_INPUT,1,function(x) {

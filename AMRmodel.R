@@ -1,5 +1,8 @@
-
 ################################  AMRmodel #####################################
+### Core AMR model of the three environments for Denmark, England and Senegal
+
+
+### Initial set up parameters and time to run
 #state <- c(H=(1/70000000),A=0,E=0)
 state <- c(H=(input.table[input.table$parameter=='H_0',]$value),
            A=(input.table[input.table$parameter=='A_0',]$value),

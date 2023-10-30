@@ -1,0 +1,10 @@
+﻿parameter,value
+H_0,0.001
+A_0,0.001
+E_0,0.001
+epid.start,2000
+epid.duration,50
+int.time,2023
+eval.time,20
+beta_HH_min,0.3
+mu_max,0.5
