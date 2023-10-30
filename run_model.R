@@ -27,32 +27,30 @@ usage.table <- as.data.frame(read.csv("data/usage.csv"))
 #### Plot this input data - only do first time
 # source("plotinputdata.R")
 
-
 #### How far can the model be from the data? 
 MARGIN_TOLERANCE = 0.10
 # Adapts the resistance prevalence data 
-source("model_functions/total_max_min_example.R") # For each year, take the max / min of the data for resistance prevalence +/- margin of tolerance
+source("model_functions/total_max_min_example.R") # For each year, take the max / min of the data for resistance prevalence +/- margin of tolerance. Ignore warnings() - to do with years that have no data
 # -> Generates "sup_inf_data"
 
-source("AMRmodel.R")
-source("epid.R")
-source("Sampling.R")
-source("outFUN_temp.R") #non parallel
-source("outFUN.R") #parallel
-source("plotfits.R")
-source("plotfits2.R")
+#### Load needed functions
+# Loads Core AMR model
+source("model_functions/AMRmodel.R")
+# Loads epid function: wrapper for core model 
+source("model_functions/epid.R")
+# Loads Sampling function: LHS sampling with checks on parameters
+source("model_functions/sampling.R")
+# 
+source("model_functions/outFUN_temp.R") #non parallel
+source("model_functions/outFUN.R") #parallel
+# Plot output functions
+source("plot_functions/plotfits.R")
+source("plot_functions/plotfits2.R")
 
-
-
-p1<-Sampling(50000)
-#check assumptions
-p1 <- p1[p1$beta_EA >= p1$beta_EH, ] #good 
-p1 <- p1[p1$beta_HH >= p1$beta_AH, ] #good
-p1 <- p1[p1$beta_HH >= p1$beta_EH, ] #this one removes a few 
-p1 <- p1[p1$beta_AA >= p1$beta_HA, ] #good
-p1 <- p1[p1$beta_EA >= p1$beta_EA, ] #good
-#p1 <- p1[p1$LAMBDA_A >= p1$LAMBDA_H, ] #good
-#p1 <- p1[p1$LAMBDA_H >= p1$LAMBDA_E, ] #good
+##### Generate parameter samples
+p1<-sampling(50000)
+## Add final limitations
+p1 <- p1[p1$beta_EA >= p1$beta_EH, ] 
 
 time1_eng<-13
 time2_eng<-17
@@ -93,12 +91,12 @@ usage.table <- rbind(usage.table,temp_2020_row_extra,temp_2000_row_extra)
 
 den_usage <- usage.table[usage.table$country=="denmark" &usage.table$subsource=="all humans",c("year","kg")]
 
-source("plotting_time_varying_usage.R") #will plot england and denmark assumptions for usage
+#source("plot_functions/plotting_time_varying_usage.R") #will plot england and denmark assumptions for usage
 
 
 #Run the simulator outFUN for the Latin-Hypercube samples generated above
 ptm <- proc.time() #time run 
-outFUN(p1,"denmark" #the file name
+outFUN_temp(p1,"denmark" #the file name
 ) 
 proc.time() - ptm
 

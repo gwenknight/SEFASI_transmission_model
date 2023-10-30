@@ -1,14 +1,8 @@
-
-#from Knight paper
-#Both acquisition rates (via transmission and de novo emergence) were dependent on 
-#exposure to antibiotics, as antibiotic use clears sensitive bacterial carriage, 
-#predisposing a host to colonisation with the (new) ARB. Linking transmission directly 
-#to antibiotic exposure captures this impact of selection on both the source of 
-#transmission (antibiotic exposure increases the ARB load) and the receiver 
+#### Required packages for this code
 require(deSolve)
 require(ggplot2)
 require(lhs)
-require(IMIS)
+#require(IMIS) ## currently not available - need? 
 require(dplyr) 
 require(reshape)
 require(pbapply)

@@ -1,12 +1,20 @@
+################################  Simple simulator of epidemiology  #####################################
+############# epid function = wrapper for ode and country models ##########################
+##### INPUTS
+### Lambda_H : episilon = parameters for code AMR model 
+### returnout = if 1 then gives output
+### input_country = which of the 3 SEFASI countries to input
 
-################################  epid simple simulator #####################################
+##### OUTPUTS
+### model simulation output for that country 
+
 epid <- function(LAMBDA_H, LAMBDA_A, LAMBDA_E,
                  beta_HH, beta_AA, 
                  beta_HA, beta_AH, 
                  beta_HE, beta_EH, 
                  beta_AE, beta_EA,
                  beta_EE,
-                 mu_H, mu_A, mu_E,gamma,returnout,epsilon, input_country
+                 mu_H, mu_A, mu_E,gamma,epsilon, returnout, input_country
 ){
   params <- c(LAMBDA_H=LAMBDA_H,LAMBDA_A=LAMBDA_A,LAMBDA_E=LAMBDA_E,
               beta_HH=beta_HH,  beta_AA=beta_AA,  beta_HE=beta_HE,  beta_AH=beta_AH,
@@ -14,7 +22,7 @@ epid <- function(LAMBDA_H, LAMBDA_A, LAMBDA_E,
               beta_EE=beta_EE,  mu_H = mu_H, mu_A = mu_A, mu_E = mu_E,gamma=gamma,epsilon=epsilon)
   
   
-  #run the model using desolve
+  #run the core AMR model using desolve
   if (input_country=="denmark"){
     out <- as.data.frame(ode(y=state,time=vectTime,func=AMRmodel_DENMARK,parms=params))
   } else if  (input_country=="england"){
@@ -25,6 +33,7 @@ epid <- function(LAMBDA_H, LAMBDA_A, LAMBDA_E,
 
   out$time = out$time+epid.start #rescale the time so that it runs from 2000 onwards 
   
+  # Add in year
   for(i in 1:22){
   assign( paste("model",1999+i,".H",sep=""),
           out$H[out$time==1999+i] )
@@ -37,7 +46,7 @@ epid <- function(LAMBDA_H, LAMBDA_A, LAMBDA_E,
   }
 
   
-  
+  ## if returnout is input as 1 then return out (all data)
   if (returnout ==1){
     return(out)} else{
       

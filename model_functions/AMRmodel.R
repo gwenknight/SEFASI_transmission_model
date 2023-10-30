@@ -17,9 +17,11 @@ end.time <- int.time  + eval.time
 #byN=0.1
 #beta_HH is the relative attribution of carriage between H and H etc
 #gamma is the per-capita rate at which states acquire resistant bacteria as a result of exposure
+
+###### Model of AMR in Denmark with time varying antibiotic usage
 AMRmodel_DENMARK <- function(time,state,parameters){ #using package deSolve
   with(as.list(c(state,parameters)),{
-    
+    # Time varying antibiotic usage for Denmark
     if (time <= 2)  {LAMBDA_H <- LAMBDA_H* den_usage[den_usage$year == round((2000+time),0),]$kg/initial_den_H
       LAMBDA_A <- LAMBDA_H/H_A_ratio_den } else if ((time >2) & (time <= 3))  {
         LAMBDA_H <- LAMBDA_H* den_usage[den_usage$year == round((2000+time),0),]$kg/initial_den_H
@@ -35,6 +37,7 @@ AMRmodel_DENMARK <- function(time,state,parameters){ #using package deSolve
                   LAMBDA_H <- LAMBDA_H* den_usage[den_usage$year == (2019),]$kg/initial_den_H 
                   LAMBDA_A <- (LAMBDA_H/H_A_ratio_den)*ratio_den_2021_A }
     
+    # Equations governing Human - Animal - Environment interaction 
     dH <- gamma*LAMBDA_H*(1-H) + LAMBDA_H*beta_HH*H*(1-H) + LAMBDA_H*beta_AH*(1-H)*A + LAMBDA_H*beta_EH*(1-H)*E - mu_H*H
     dA <-  gamma*LAMBDA_A*(1-A) + LAMBDA_A*beta_AA*A*(1-A) + LAMBDA_A*beta_HA*(1-A)*H + LAMBDA_A*beta_EA*(1-A)*E - mu_A*A
     dE <-  LAMBDA_E*beta_EE*E*(1-E) + LAMBDA_E*beta_HE*(1-E)*H + LAMBDA_E*beta_AE*(1-E)*A - mu_E*E
@@ -42,10 +45,11 @@ AMRmodel_DENMARK <- function(time,state,parameters){ #using package deSolve
     return(  list(c(dH,dA,dE)))
 })}
 
-
+###### Model of AMR in Senegal with no time varying antibiotic usage due to a lack of data
 AMRmodel_SENEGAL <- function(time,state,parameters){ #using package deSolve
   with(as.list(c(state,parameters)),{
     
+    # Equations governing Human - Animal - Environment interaction 
     dH <- gamma*LAMBDA_H*(1-H) + LAMBDA_H*beta_HH*H*(1-H) + LAMBDA_H*beta_AH*(1-H)*A + LAMBDA_H*beta_EH*(1-H)*E - mu_H*H
     dA <-  gamma*LAMBDA_A*(1-A) + LAMBDA_A*beta_AA*A*(1-A) + LAMBDA_A*beta_HA*(1-A)*H + LAMBDA_A*beta_EA*(1-A)*E - mu_A*A
     dE <-  LAMBDA_E*beta_EE*E*(1-E) + LAMBDA_E*beta_HE*(1-E)*H + LAMBDA_E*beta_AE*(1-E)*A - mu_E*E
@@ -53,10 +57,11 @@ AMRmodel_SENEGAL <- function(time,state,parameters){ #using package deSolve
     return(  list(c(dH,dA,dE)))
   })}
 
-
+###### Model of AMR in England with time varying antibiotic usage
 AMRmodel_ENGLAND <- function(time,state,parameters){ #using package deSolve
   with(as.list(c(state,parameters)),{ #
-     
+    
+    # Time varying antibiotic usage for England 
     if (time <= time1_eng)  {LAMBDA_H <- LAMBDA_H
     LAMBDA_A <- LAMBDA_H/H_A_ratio_eng } else if ((time >time1_eng) & (time < time2_eng))  {  
       LAMBDA_H <- LAMBDA_H + ((time - time1_eng)*(((LAMBDA_H*ratio_eng_2017_H) - LAMBDA_H)/(time2_eng-time1_eng)))
@@ -64,6 +69,7 @@ AMRmodel_ENGLAND <- function(time,state,parameters){ #using package deSolve
         LAMBDA_H <- LAMBDA_H*ratio_eng_2017_H
         LAMBDA_A <- (LAMBDA_H/H_A_ratio_eng)*ratio_eng_2017_A}
     
+    # Equations governing Human - Animal - Environment interaction 
     dH <- gamma*LAMBDA_H*(1-H) + LAMBDA_H*beta_HH*H*(1-H) + LAMBDA_H*beta_AH*(1-H)*A + LAMBDA_H*beta_EH*(1-H)*E - mu_H*H
     dA <-  gamma*LAMBDA_A*(1-A) + LAMBDA_A*beta_AA*A*(1-A) + LAMBDA_A*beta_HA*(1-A)*H + LAMBDA_A*beta_EA*(1-A)*E - mu_A*A
     dE <-  LAMBDA_E*beta_EE*E*(1-E) + LAMBDA_E*beta_HE*(1-E)*H + LAMBDA_E*beta_AE*(1-E)*A - mu_E*E

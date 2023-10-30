@@ -8,7 +8,7 @@
 require(deSolve)
 require(ggplot2)
 require(lhs)
-require(IMIS)
+#require(IMIS)
 require(dplyr) 
 require(reshape)
 require(pbapply)

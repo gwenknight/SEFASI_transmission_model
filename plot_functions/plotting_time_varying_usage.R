@@ -52,7 +52,7 @@ ggplot(data=usage.table[usage.table$country=="england" ,], aes(x=time))+
   geom_point(data=as.data.frame(H_data),aes(time,H),col="darkblue")+geom_point(data=as.data.frame(A_data),aes(time,A),col="darkgreen")#+
  # geom_line(data=as.data.frame(H_data),aes(time,H),col="darkblue")+geom_line(data=as.data.frame(A_data),aes(time,A),col="darkgreen")#
 #scale_x_continuous(expand = c(2000, 2020),limits=c(2000,2020)) + scale_y_continuous(expand = c(0, 0))
-ggsave(paste("~/Documents/Projects/SEFASI/outputs/time_varying_usage_england", ".png",sep=""), width = 150, height = 100, units='mm',dpi=1000)
+ggsave(paste("plots/time_varying_usage_england", ".png",sep=""), width = 150, height = 100, units='mm',dpi=1000)
 
 
 fittedvalue<-1
@@ -112,5 +112,5 @@ ggplot(data=usage.table[usage.table$country=="denmark" & usage.table$subsource %
   theme(legend.position = 'right')+guides(colour=guide_legend(ncol=1))+
   geom_point(data=as.data.frame(H_data),aes(time,H),col="darkblue")+geom_point(data=as.data.frame(A_data),aes(time,A),col="darkgreen")#+
  # geom_line(data=as.data.frame(H_data),aes(time,H),col="darkblue")+geom_line(data=as.data.frame(A_data),aes(time,A),col="darkgreen")#+
-ggsave(paste("~/Documents/Projects/SEFASI/outputs/time_varying_usage_denmark", ".png",sep=""), width = 150, height = 100, units='mm',dpi=1000)
+ggsave(paste("plots/time_varying_usage_denmark", ".png",sep=""), width = 150, height = 100, units='mm',dpi=1000)
 
