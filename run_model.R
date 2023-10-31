@@ -8,10 +8,6 @@ rm(list = ls())
 source("model_functions/packages.R")
 setwd(here())
 
-############################## Input parameters 
-input.table <- as.data.frame(read.csv("data/input.table.csv"))
-input.table$parameter <- as.character(input.table$parameter)
-
 #### Load needed functions
 # Loads Core AMR model
 source("model_functions/AMRmodel.R")
@@ -35,7 +31,7 @@ dim(p1) # 100,000 parameter sets
 
 ##### Generate time varying antibiotic usage curves
 # will plot england and denmark assumptions for usage & generates time varying LAMBDA
-source("plot_functions/explore&plot_time_varying_usage.R") 
+source("plot_functions/explore_and_plot_time_varying_usage.R") 
 
 
 ##################################### Run the simulator outFUN for the Latin-Hypercube samples generated above
