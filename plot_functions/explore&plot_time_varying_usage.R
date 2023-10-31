@@ -1,7 +1,8 @@
 ################## Explore and plot time varying antibiotic usage ###### 
+#### Antibiotic usage
+usage.table <- as.data.frame(read.csv("data/usage.csv"))
 
-
-###ENGLAND
+###################################################ENGLAND
 ### Raw data
 eng_use <- usage.table %>% filter(country == "england")
 
@@ -54,8 +55,8 @@ H_data$time <- 2000+1:20
 A_data$time <- 2000+1:20
 
 # Multiply by initial values to get back to antibiotic usage in kg
-H_data$H <- initial_eng_H*H_data$H 
-A_data$A <- initial_eng_H*A_data$A
+H_data$H <- as.numeric(initial_eng_H)*H_data$H 
+A_data$A <- as.numeric(initial_eng_H)*A_data$A
 ggplot(as.data.frame(H_data))+geom_point(data=as.data.frame(H_data),aes(time,H),col="lightblue")+geom_point(data=as.data.frame(A_data),aes(time,A))+
   theme(panel.border = element_rect(linetype = "solid", fill = NA))#+
 
@@ -82,9 +83,23 @@ ggsave(paste("plots/time_varying_usage_england", ".png",sep=""), width = 150, he
 
 
 
-#### Denmark 
+#################################################### Denmark 
 ### Raw data
 den_use <- usage.table %>% filter(country == "denmark")
+
+#### Add in missing data for 2020 and 2000
+# # ?assumption leave out 2020 point  (8.9) because not comparable to just "cephalosporins"
+## Assume 2020 levels same as 2019 as no data 
+temp_2020_row_extra <- usage.table[usage.table$country=="denmark" &usage.table$subsource=="all humans" & usage.table$year == (2019),] #this is to make sure 2020 point fits into function assumption 2020= 2019
+temp_2020_row_extra$year <- 2020
+
+#for AMRmodel.R to make sense we need to add data before 2001: assume same in 2000 as in 2001
+temp_2000_row_extra <- usage.table[usage.table$country=="denmark" &usage.table$subsource=="all humans" & usage.table$year == (2001),] #this is to make sure 2020 point fits into function assumption 2020= 2019
+temp_2000_row_extra$year <- 2000
+usage.table <- rbind(usage.table,temp_2020_row_extra,temp_2000_row_extra)
+
+den_use_h <- usage.table[usage.table$country=="denmark" &usage.table$subsource=="all humans",c("year","kg")]
+
 
 # Break points for Denmark data
 time1_den <- 2
@@ -94,8 +109,8 @@ time4_den <- 16
 time5_den <- 18
 
 # Start in 2002 when have data from both
-initial_den_H = den_use %>% filter(source == "humans", year == 2002) %>% select("kg") # 811
-initial_den_A = den_use %>% filter(source == "animals", year == 2002) %>% select("kg") # 385
+initial_den_H = as.numeric(den_use %>% filter(source == "humans", year == 2002) %>% select("kg")) # 811
+initial_den_A = as.numeric(den_use %>% filter(source == "animals", year == 2002) %>% select("kg")) # 385
 # At critical points
 ratio_den_2003_H<-  den_use %>% filter(source == "humans", year == 2003) %>% select("kg")/initial_den_H
 ratio_den_2003_A<-  461/initial_den_A
@@ -120,28 +135,28 @@ LAMBDA_time <- function(max_time){
   # run over all time 
   for (i in c(1:max_time) ){
     if (i <= 2)  {
-      LAMBDA_H_temp <- LAMBDA_H_temp_input* den_usage[den_usage$year == (2000+i),]$kg/initial_den_H
+      LAMBDA_H_temp <- LAMBDA_H_temp_input* den_use_h[den_use_h$year == (2000+i),]$kg/initial_den_H
       LAMBDA_A_temp <- LAMBDA_H_temp_input/H_A_ratio_den 
     } else if ((i >2) & (i <= 3))  {
-      LAMBDA_H_temp <- LAMBDA_H_temp_input* den_usage[den_usage$year == (2000+i),]$kg/initial_den_H
+      LAMBDA_H_temp <- LAMBDA_H_temp_input* den_use_h[den_use_h$year == (2000+i),]$kg/initial_den_H
       LAMBDA_A_temp <- (LAMBDA_H_temp_input/H_A_ratio_den)*ratio_den_2003_A
     } else if ((i >3) & (i <= 15))  {  
-      LAMBDA_H_temp <- LAMBDA_H_temp_input* den_usage[den_usage$year == (2000+i),]$kg/initial_den_H
+      LAMBDA_H_temp <- LAMBDA_H_temp_input* den_use_h[den_use_h$year == (2000+i),]$kg/initial_den_H
       LAMBDA_A_temp <- (LAMBDA_H_temp_input/H_A_ratio_den)*ratio_den_2003_A + (i-3)*(((LAMBDA_H_temp_input/H_A_ratio_den)*ratio_den_2015_A - (LAMBDA_H_temp_input/H_A_ratio_den)*ratio_den_2003_A)/(15-3)) 
     } else if ((i >15) & (i <= 16))  {  
-      LAMBDA_H_temp <- LAMBDA_H_temp_input* den_usage[den_usage$year == (2000+i),]$kg/initial_den_H
+      LAMBDA_H_temp <- LAMBDA_H_temp_input* den_use_h[den_use_h$year == (2000+i),]$kg/initial_den_H
       LAMBDA_A_temp <- (LAMBDA_H_temp_input/H_A_ratio_den)*ratio_den_2016_A
     }  else if ((i>16) & (i <= 18))   { 
-      LAMBDA_H_temp<- LAMBDA_H_temp_input* den_usage[den_usage$year == (2000+i),]$kg/initial_den_H
+      LAMBDA_H_temp<- LAMBDA_H_temp_input* den_use_h[den_use_h$year == (2000+i),]$kg/initial_den_H
       LAMBDA_A_temp <- (LAMBDA_H_temp_input/H_A_ratio_den)*ratio_den_2016_A + (i-16)*(((LAMBDA_H_temp_input/H_A_ratio_den)*ratio_den_2018_A - (LAMBDA_H_temp_input/H_A_ratio_den)*ratio_den_2016_A)/(18-16))
     } else if ((i >18) & (i <= 20))  {
-      LAMBDA_H_temp <- LAMBDA_H_temp_input* den_usage[den_usage$year == (2000+i),]$kg/initial_den_H
+      LAMBDA_H_temp <- LAMBDA_H_temp_input* den_use_h[den_use_h$year == (2000+i),]$kg/initial_den_H
       LAMBDA_A_temp <-   (LAMBDA_H_temp_input/H_A_ratio_den)*ratio_den_2018_A + (i-18)*(((LAMBDA_H_temp_input/H_A_ratio_den)*ratio_den_2020_A - (LAMBDA_H_temp_input/H_A_ratio_den)*ratio_den_2018_A)/(20-18)) 
     } else if ((i > 20))  {
-      LAMBDA_H_temp <- LAMBDA_H_temp_input* den_usage[den_usage$year == (2019),]$kg/initial_den_H 
+      LAMBDA_H_temp <- LAMBDA_H_temp_input* den_use_h[den_use_h$year == (2019),]$kg/initial_den_H 
       LAMBDA_A_temp <- (LAMBDA_H_temp_input/H_A_ratio_den)*ratio_den_2021_A }
     
-    print(c(i,LAMBDA_H_temp, LAMBDA_A_temp))
+    #print(c(i,LAMBDA_H_temp, LAMBDA_A_temp))
     
     temp_time_H[i] <- LAMBDA_H_temp
     temp_time_A[i] <- LAMBDA_A_temp

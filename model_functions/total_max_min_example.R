@@ -148,9 +148,14 @@ sen_res$inf[!is.finite(sen_res$inf)] <- NA
 
 #### Combine together into one dataset and add margin of tolerance 
 sup_inf_data <- rbind(eng_res,den_res,sen_res)
-sup_inf_data[!is.na(sup_inf_data$inf),]$inf <- sup_inf_data[!is.na(sup_inf_data$inf),]$inf  - MARGIN_TOLERANCE
-sup_inf_data[sup_inf_data$inf<=0 & !is.na(sup_inf_data$inf),]$inf <- 0
-sup_inf_data[!is.na(sup_inf_data$sup),]$sup <- sup_inf_data[!is.na(sup_inf_data$sup),]$sup  + MARGIN_TOLERANCE
 
-sup_inf_data<-sup_inf_data[!is.na(sup_inf_data$sup),]
+write.csv(sup_inf_data, "output/sup_inf_data.csv")
+
+
+# sup_inf_data[!is.na(sup_inf_data$inf),]$inf <- sup_inf_data[!is.na(sup_inf_data$inf),]$inf  - MARGIN_TOLERANCE
+# sup_inf_data[sup_inf_data$inf<=0 & !is.na(sup_inf_data$inf),]$inf <- 0
+# sup_inf_data[!is.na(sup_inf_data$sup),]$sup <- sup_inf_data[!is.na(sup_inf_data$sup),]$sup  + MARGIN_TOLERANCE
+# sup_inf_data<-sup_inf_data[!is.na(sup_inf_data$sup),]
+
+
 
