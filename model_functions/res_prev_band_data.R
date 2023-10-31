@@ -5,6 +5,15 @@
 # INPUTS res.table
 # OUTPUTS sup_inf_data
 
+#### Resistance prevalence
+res.table<- as.data.frame(read.csv("data/res.table.csv"))
+res.table$percent <- res.table$percent/100
+res.table$inf <- res.table$percent - (1.96*sqrt(res.table$percent*(1-res.table$percent)/res.table$N))
+res.table$sup <- res.table$percent + (1.96*sqrt(res.table$percent*(1-res.table$percent)/res.table$N))
+res.table$inf[res.table$inf<0] <- 0 #make sure no negatives
+res.table<-res.table[res.table$country %in% c("denmark","england","senegal"),] # only data for the countries in SEFASI
+
+
 ### For Denmark data
 denmark_res <- res.table[res.table$country=="denmark",]
 

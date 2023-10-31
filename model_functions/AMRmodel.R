@@ -1,6 +1,9 @@
 ################################  AMRmodel #####################################
 ### Core AMR model of the three environments for Denmark, England and Senegal
 
+############################## Input parameters 
+input.table <- as.data.frame(read.csv("data/input.table.csv"))
+input.table$parameter <- as.character(input.table$parameter)
 
 ### Initial set up parameters and time to run
 #state <- c(H=(1/70000000),A=0,E=0)

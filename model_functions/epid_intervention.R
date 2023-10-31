@@ -1,20 +1,24 @@
-
 ################################ plotting the effect of intervention from int.time ##############
+#### Function to simulate impact of interventions
+### INPUTS
+## Params = parameters 
+## returnout = 1/0 if want to see output as go
+## intervention = which to run: from 1-19 
+## input_country = which country in SEFASI trio
+
 epid_intervention <- function(
     
-    LAMBDA_H, LAMBDA_A, LAMBDA_E,
-    beta_HH, beta_AA, 
-    beta_HA, beta_AH, 
-    beta_HE, beta_EH, 
-    beta_AE, beta_EA,
-    beta_EE,
-    mu_H, mu_A, mu_E,gamma,returnout,epsilon,
-    intervention, input_country){
+    params, 
+    returnout,
+    intervention, 
+    input_country){
 
-  params <- c(LAMBDA_H=LAMBDA_H,LAMBDA_A=LAMBDA_A,LAMBDA_E=LAMBDA_E,
-              beta_HH=beta_HH,  beta_AA=beta_AA,  beta_HE=beta_HE,  beta_AH=beta_AH,
-              beta_EH=beta_EH,  beta_HA=beta_HA,  beta_EA=beta_EA,  beta_AE=beta_AE, 
-              beta_EE=beta_EE,  mu_H = mu_H, mu_A = mu_A, mu_E = mu_E,gamma=gamma,epsilon=epsilon)
+  # params <- c(LAMBDA_H=LAMBDA_H,LAMBDA_A=LAMBDA_A,LAMBDA_E=LAMBDA_E,
+  #             beta_HH=beta_HH,  beta_AA=beta_AA,  beta_HE=beta_HE,  beta_AH=beta_AH,
+  #             beta_EH=beta_EH,  beta_HA=beta_HA,  beta_EA=beta_EA,  beta_AE=beta_AE, 
+  #             beta_EE=beta_EE,  mu_H = mu_H, mu_A = mu_A, mu_E = mu_E,gamma=gamma,epsilon=epsilon)
+  
+  # Run the deterministic model for this set of parameters 
   if (input_country=="denmark"){
     out <- as.data.frame(ode(y=state,time=vectTime,func=AMRmodel_DENMARK,parms=params))
   } else if  (input_country=="england"){
@@ -24,6 +28,7 @@ epid_intervention <- function(
   }
   out$time = out$time+epid.start #rescale the time so that it runs from 2005 onwards 
   
+  # New initial time
   state2<-c(H=out$H[out$time==int.time],A=out$A[out$time==int.time],E=out$E[out$time==int.time])
   if (intervention==1){ #
     params2 <- c(LAMBDA_H=0,
@@ -182,6 +187,7 @@ epid_intervention <- function(
   modelend.time.A.int <- out2$A[out2$time==end.time]
   modelend.time.E.int <- out2$E[out2$time==end.time] 
   
+  # Explore percentage impact
   differenceH_percent <-   (modelend.time.H -  modelend.time.H.int)/modelend.time.H
   differenceA_percent <-   (modelend.time.A -  modelend.time.A.int)/modelend.time.A
   differenceE_percent <-   (modelend.time.E -  modelend.time.E.int)/modelend.time.E
