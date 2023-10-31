@@ -21,8 +21,7 @@ res.table$sup <- res.table$percent + (1.96*sqrt(res.table$percent*(1-res.table$p
 res.table$inf[res.table$inf<0] <- 0 #make sure no negatives
 res.table<-res.table[res.table$country %in% c("denmark","england","senegal"),] # only data for the countries in SEFASI
 
-#### Antibiotic usage
-usage.table <- as.data.frame(read.csv("data/usage.csv"))
+
 
 #### Plot this input data - only do first time
 # source("plotinputdata.R")
@@ -40,46 +39,45 @@ source("model_functions/AMRmodel.R")
 source("model_functions/epid.R")
 # Loads Sampling function: LHS sampling with checks on parameters
 source("model_functions/sampling.R")
-# 
-source("model_functions/outFUN_temp.R") #non parallel
-source("model_functions/outFUN.R") #parallel
+# Loads function to run across LHS parameters (outFun and temp one for non parallel)
+source("model_functions/run_for_many_para.R")
 # Plot output functions
 source("plot_functions/plotfits.R")
 source("plot_functions/plotfits2.R")
 
 ##### Generate parameter samples
-p1<-sampling(50000)
+p1<-sampling(500000) # go big to get lots as criterion remove lots
 ## Add final limitations
-p1 <- p1[p1$beta_EA >= p1$beta_EH, ] 
+p1 <- p1[p1$beta_EA >= p1$beta_EH, ] # removes a lot
+## Take 100,000 of these: do random as LHS aims to go over the whole space
+p1 <- p1[sample(x = dim(p1)[1], size = 100000),]
+dim(p1) # 100,000 parameter sets
 
-
-#assumption leave out 2020 point  (8.9) because not comparable to just "cephalosporins"
-temp_2020_row_extra <- usage.table[usage.table$country=="denmark" &usage.table$subsource=="all humans" & usage.table$year == (2019),] #this is to make sure 2020 point fits into function assumption 2020= 2019
-temp_2020_row_extra$year <- 2020
-
-#for AMRmodel.R to make sense we need to add data before 2001
-temp_2000_row_extra <- usage.table[usage.table$country=="denmark" &usage.table$subsource=="all humans" & usage.table$year == (2001),] #this is to make sure 2020 point fits into function assumption 2020= 2019
-temp_2000_row_extra$year <- 2000
-usage.table <- rbind(usage.table,temp_2020_row_extra,temp_2000_row_extra)
-
-den_usage <- usage.table[usage.table$country=="denmark" &usage.table$subsource=="all humans",c("year","kg")]
-
-#source("plot_functions/explore&plot_time_varying_usage.R") #will plot england and denmark assumptions for usage
+##### Generate time varying antibiotic usage curves
+# will plot england and denmark assumptions for usage & generates time varying LAMBDA
+source("plot_functions/explore&plot_time_varying_usage.R") 
 
 
 #Run the simulator outFUN for the Latin-Hypercube samples generated above
+# Not parallel
+#ptm <- proc.time() #time run 
+#outFUN_temp(p1[1:100,],"denmark" #the file name
+#) 
+#proc.time() - ptm
+
+### GK: computer 0.5s per run
 ptm <- proc.time() #time run 
-outFUN_temp(p1,"denmark" #the file name
+outFUN(p1[1:10000,],"england" #the file name 
 ) 
 proc.time() - ptm
 
 ptm <- proc.time() #time run 
-outFUN(p1,"england" #the file name
+outFUN(p1[1:10000,],"denmark" #the file name
 ) 
 proc.time() - ptm
 
 ptm <- proc.time() #time run 
-outFUN(p1,"senegal" #the file name
+outFUN(p1[1:10000,],"senegal" #the file name
 ) 
 proc.time() - ptm
 
