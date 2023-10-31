@@ -8,19 +8,12 @@
 ##### OUTPUTS
 ### model simulation output for that country 
 
-epid <- function(LAMBDA_H, LAMBDA_A, LAMBDA_E,
-                 beta_HH, beta_AA, 
-                 beta_HA, beta_AH, 
-                 beta_HE, beta_EH, 
-                 beta_AE, beta_EA,
-                 beta_EE,
-                 mu_H, mu_A, mu_E,gamma,epsilon, returnout, input_country
-){
-  params <- c(LAMBDA_H=LAMBDA_H,LAMBDA_A=LAMBDA_A,LAMBDA_E=LAMBDA_E,
-              beta_HH=beta_HH,  beta_AA=beta_AA,  beta_HE=beta_HE,  beta_AH=beta_AH,
-              beta_EH=beta_EH,  beta_HA=beta_HA,  beta_EA=beta_EA,  beta_AE=beta_AE, 
-              beta_EE=beta_EE,  mu_H = mu_H, mu_A = mu_A, mu_E = mu_E,gamma=gamma,epsilon=epsilon)
-  
+epid <- function(params, returnout, input_country){
+  # params <- c(LAMBDA_H=LAMBDA_H,LAMBDA_A=LAMBDA_A,LAMBDA_E=LAMBDA_E,
+  #             beta_HH=beta_HH,  beta_AA=beta_AA,  beta_HE=beta_HE,  beta_AH=beta_AH,
+  #             beta_EH=beta_EH,  beta_HA=beta_HA,  beta_EA=beta_EA,  beta_AE=beta_AE, 
+  #             beta_EE=beta_EE,  mu_H = mu_H, mu_A = mu_A, mu_E = mu_E,gamma=gamma,epsilon=epsilon)
+  # 
   
   #run the core AMR model using desolve
   if (input_country=="denmark"){

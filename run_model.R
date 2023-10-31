@@ -52,34 +52,7 @@ p1<-sampling(50000)
 ## Add final limitations
 p1 <- p1[p1$beta_EA >= p1$beta_EH, ] 
 
-time1_eng<-13
-time2_eng<-17
-initial_eng_H = 3400
-initial_eng_A = 1200
-ratio_eng_2017_H<-  4500/initial_eng_H
-ratio_eng_2017_A<-  900/initial_eng_A
-H_A_ratio_eng <-initial_eng_H/initial_eng_A
 
-time1_den <- 2
-time2_den <- 3
-time3_den <- 15
-time4_den <- 16
-time5_den <- 18
-
-initial_den_H = 811
-initial_den_A = 385
-ratio_den_2003_H<-  830/initial_den_H
-ratio_den_2003_A<-  461/initial_den_A
-ratio_den_2015_H<-  1853/initial_den_H
-ratio_den_2015_A<-  235/initial_den_A
-ratio_den_2016_H<-  1702/initial_den_H
-ratio_den_2016_A<-  206/initial_den_A
-ratio_den_2018_H<-  1619/initial_den_H
-ratio_den_2018_A<-  180/initial_den_A
-
-ratio_den_2020_A<-  155/initial_den_A
-ratio_den_2021_A<-  129/initial_den_A
-H_A_ratio_den <-initial_den_H/initial_den_A
 #assumption leave out 2020 point  (8.9) because not comparable to just "cephalosporins"
 temp_2020_row_extra <- usage.table[usage.table$country=="denmark" &usage.table$subsource=="all humans" & usage.table$year == (2019),] #this is to make sure 2020 point fits into function assumption 2020= 2019
 temp_2020_row_extra$year <- 2020
@@ -91,7 +64,7 @@ usage.table <- rbind(usage.table,temp_2020_row_extra,temp_2000_row_extra)
 
 den_usage <- usage.table[usage.table$country=="denmark" &usage.table$subsource=="all humans",c("year","kg")]
 
-#source("plot_functions/plotting_time_varying_usage.R") #will plot england and denmark assumptions for usage
+#source("plot_functions/explore&plot_time_varying_usage.R") #will plot england and denmark assumptions for usage
 
 
 #Run the simulator outFUN for the Latin-Hypercube samples generated above

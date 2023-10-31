@@ -18,18 +18,18 @@ denmark,cephalosporins,2017,animals,pets,42,DANMAP 2021 Table 4.4,
 denmark,cephalosporins,2017,humans,all humans,3104,DANMAP 2019 web appendix Table A5.1,
 denmark,cephalosporins,2016,animals,all animals,206,DANMAP 2016 Table 4.1,
 denmark,cephalosporins,2016,animals,pets,55,DANMAP 2021 Table 4.4,
-denmark,cephalosporins,2016,humans,all humans,1702,DANMAP 2016 web appendix Table A5.1,
+denmark,cephalosporins,2016,humans,all humans,1662,DANMAP 2019 web appendix Table A5.1,
 denmark,cephalosporins,2015,animals,all animals,235,DANMAP 2015 Table 4.1,
 denmark,cephalosporins,2015,animals,pets,62,DANMAP 2021 Table 4.4,
-denmark,cephalosporins,2015,humans,all humans,1853,DANMAP 2016 web appendix Table A5.1,
+denmark,cephalosporins,2015,humans,all humans,1820,DANMAP 2019 web appendix Table A5.1,
 denmark,cephalosporins,2014,animals,pets,81,DANMAP 2021 Table 4.4,
-denmark,cephalosporins,2014,humans,all humans,2060,DANMAP 2016 web appendix Table A5.1,
+denmark,cephalosporins,2014,humans,all humans,1910,DANMAP 2019 web appendix Table A5.1,
 denmark,cephalosporins,2013,animals,pets,75,DANMAP 2021 Table 4.4,
-denmark,cephalosporins,2013,humans,all humans,2328,DANMAP 2016 web appendix Table A5.1,
+denmark,cephalosporins,2013,humans,all humans,2167,DANMAP 2019 web appendix Table A5.1,
 denmark,cephalosporins,2012,animals,pets,79,DANMAP 2021 Table 4.4,
-denmark,cephalosporins,2012,humans,all humans,1983,DANMAP 2016 web appendix Table A5.1,
-denmark,cephalosporins,2011,humans,all humans,2374,DANMAP 2016 web appendix Table A5.1,
-denmark,cephalosporins,2010,humans,all humans,2696,DANMAP 2010 Table 5.2,
+denmark,cephalosporins,2012,humans,all humans,2363,DANMAP 2019 web appendix Table A5.1,
+denmark,cephalosporins,2011,humans,all humans,2541,DANMAP 2019 web appendix Table A5.1,
+denmark,cephalosporins,2010,humans,all humans,2095,DANMAP 2019 web appendix Table A5.1,
 denmark,cephalosporins,2009,humans,all humans,2740,DANMAP 2010 Table 5.2,
 denmark,cephalosporins,2008,humans,all humans,2530,DANMAP 2010 Table 5.2,
 denmark,cephalosporins,2007,humans,all humans,2285,DANMAP 2010 Table 5.2,
@@ -41,7 +41,10 @@ denmark,cephalosporins,2003,humans,all humans,830,DANMAP 2010 Table 5.2,
 denmark,cephalosporins,2002,animals,all animals,385,DANMAP 2003 page 8,
 denmark,cephalosporins,2002,humans,all humans,811,DANMAP 2010 Table 5.2,
 denmark,cephalosporins,2001,humans,all humans,739,DANMAP 2010 Table 5.2,
-england,3rd and 4th generation cephalosporins,2017,humans,all humans,4500,"UK One Health Report 2019 Joint report on antibiotic use and antibiotic resistance, 2013–2017",from UK 
-england,3rd and 4th generation cephalosporins,2013,humans,all humans,3400,"UK One Health Report 2019 Joint report on antibiotic use and antibiotic resistance, 2013–2017",from UK 
-england,3rd and 4th generation cephalosporins,2017,animals,all animals,900,"UK One Health Report 2019 Joint report on antibiotic use and antibiotic resistance, 2013–2017",from UK 
-england,3rd and 4th generation cephalosporins,2013,animals,all animals,1200,"UK One Health Report 2019 Joint report on antibiotic use and antibiotic resistance, 2013–2017",from UK 
+england,3rd and 4th generation cephalosporins,2017,humans,all humans,4500,"UK One Health Report 2019 Joint report on antibiotic use and antibiotic resistance, 2013–2017, Table 1",from UK 
+england,3rd and 4th generation cephalosporins,2013,humans,all humans,3400,"UK One Health Report 2019 Joint report on antibiotic use and antibiotic resistance, 2013–2017, Table 1",from UK 
+england,3rd and 4th generation cephalosporins,2017,animals,all animals,900,"UK One Health Report 2019 Joint report on antibiotic use and antibiotic resistance, 2013–2017, Table 1",from UK 
+england,3rd and 4th generation cephalosporins,2013,animals,all animals,1200,"UK One Health Report 2019 Joint report on antibiotic use and antibiotic resistance, 2013–2017, Table 1",from UK 
+senegal,3rd gen cephalosporins,2017,humans,all humans,14735,MAAP 2022 report + DDD calculations,
+senegal,3rd gen cephalosporins,2018,humans,all humans,22726,MAAP 2022 report + DDD calculations,
+senegal,3rd gen cephalosporins,2019,humans,all humans,17165,MAAP 2022 report + DDD calculations,
