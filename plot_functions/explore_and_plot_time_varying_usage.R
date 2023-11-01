@@ -5,18 +5,19 @@ usage.table <- as.data.frame(read.csv("data/usage.csv"))
 ###################################################ENGLAND
 ### Raw data
 eng_use <- usage.table %>% filter(country == "england")
+eng_use$kg <- as.numeric(eng_use$kg)
 
 # initial values for abx use
-initial_eng_H = eng_use %>% filter(source == "humans", year == min(eng_use$year)) %>% select("kg") #3400
-initial_eng_A = eng_use %>% filter(source == "animals", year == min(eng_use$year)) %>% select("kg") #1200
+initial_eng_H = as.numeric(eng_use %>% filter(source == "humans", year == min(eng_use$year)) %>% select("kg")) #3400
+initial_eng_A = as.numeric(eng_use %>% filter(source == "animals", year == min(eng_use$year)) %>% select("kg")) #1200
 
 # switch points in English data: assume flat before and after with linear join between 
 time1_eng<- min(eng_use$year) - 2000 #13
-time2_eng<- max(eng_use$year) - 2000 #17
+time2_eng<- max(eng_use$year) - 2000 #20
 
 # Ratio of use in humans to animals 
-ratio_eng_2017_H <-  eng_use %>% filter(source == "humans", year == max(eng_use$year)) %>% select("kg")/initial_eng_H
-ratio_eng_2017_A <-  eng_use %>% filter(source == "animals", year == max(eng_use$year)) %>% select("kg")/initial_eng_A
+ratio_eng_2017_H <-  as.numeric(eng_use %>% filter(source == "humans", year == 2017) %>% select("kg"))/initial_eng_H
+ratio_eng_2017_A <-  as.numeric(eng_use %>% filter(source == "animals", year == max(eng_use$year)) %>% select("kg"))/initial_eng_A
 H_A_ratio_eng <-initial_eng_H/initial_eng_A
 
 # Initial value
@@ -44,15 +45,16 @@ LAMBDA_time <- function(max_time){
     temp_time_A[i] <- LAMBDA_A_temp
   }
   
-  return(c(temp_time_H,temp_time_A))
+  return(list(hh = temp_time_H,aa = temp_time_A))
 }
 # Calculate human levels relative to 1 initially 
-H_data<- as.data.frame(t(data.frame((LAMBDA_time(20)[1:20]))))
-A_data <- as.data.frame(t(data.frame(LAMBDA_time(20)[21:40]))) # relative to human levels
+outlevel = LAMBDA_time(22)
+H_data<- data.frame(outlevel$hh)
+A_data <- data.frame(outlevel$aa) # relative to human levels #vas.data.frame(t(
 colnames(H_data) <- "H"
 colnames(A_data) <- "A"
-H_data$time <- 2000+1:20
-A_data$time <- 2000+1:20
+H_data$time <- 2000+1:22
+A_data$time <- 2000+1:22
 
 # Multiply by initial values to get back to antibiotic usage in kg
 H_data$H <- as.numeric(initial_eng_H)*H_data$H 
