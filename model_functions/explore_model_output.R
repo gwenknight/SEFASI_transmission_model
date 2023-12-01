@@ -7,6 +7,7 @@
 rm(list = ls())
 source("model_functions/packages.R")
 setwd(here())
+theme_set(theme_bw())
 
 ################################  MODEL OUTPUT #####################################
 ###### Read in model runs on 100,000 parameter inputs
@@ -31,13 +32,17 @@ FULLDATA2$year <- str_split_fixed(FULLDATA2$year2, fixed("."), 2)[, 1]
 FULLDATA2$env <- str_split_fixed(FULLDATA2$year2, fixed("."), 2)[, 2]
 FULLDATA <- FULLDATA2 %>% select(-c(year2, name))
 
-ggplot(FULLDATA, aes(x=year, y = value, group = runs)) + geom_line() + 
-  facet_grid(ctry ~ env)
+# ggplot(FULLDATA, aes(x=year, y = value, group = runs)) + geom_line() + 
+#   facet_grid(ctry ~ env)
 
 ggplot(FULLDATA %>% filter(runs < 5), aes(x=year, y = value, group = runs)) + geom_line(aes(col = factor(runs))) + 
   facet_grid(ctry ~ env)
 
 
+FULLDATA %>% filter(ctry == "denmark", year == 2021, env == "H") %>% filter(value < 0.2)
+
+ggplot(FULLDATA %>% filter(runs %in% c(1,100,1405,17284)), aes(x=year, y = value, group = ctry)) + geom_line(aes(col = factor(ctry))) + 
+  facet_grid(runs ~ env)
 
 ################################  FITTING DATA #####################################
 ### Resistance prevalence data cleaned 
@@ -73,6 +78,11 @@ MLE_SENEGAL <- rep(NA,nrow(FULLDATA_SENEGAL) )
 MLE_ENGLAND <- rep(NA,nrow(FULLDATA_ENGLAND) )
 MLE_DENMARK <- rep(NA,nrow(FULLDATA_DENMARK) )
 
+#### Data with one data point per time point
+res.table.fit <- read_csv("data/res.table.fit.csv")
+ggplot(res.table.fit, aes(x=time, y = percent, group = country)) + geom_line(aes(col = country)) + facet_wrap(~var) + geom_point(aes(col = country))
+
+
 for(i in 1:nrow(FULLDATA_SENEGAL)) {
   MLE_SENEGAL[i] =  LL_simple(FULLDATA_SENEGAL[i,], "senegal", res.table)
   #print(i)
@@ -102,6 +112,13 @@ best_100_denmark <- FULLDATA_DENMARK[order(-MLE_DENMARK)[1:100],]
 write.csv(best_100_senegal,"output/best_100_senegal.csv")
 write.csv(best_100_england,"output/best_100_england.csv")
 write.csv(best_100_denmark,"output/best_100_denmark.csv")
+
+############## Visualise data 
+ggplot(res.table, aes(x = time, y = percent, group = interaction(var, country))) + geom_line(aes(col= country)) + facet_wrap(~var, ncol = 3)
+res_H_country <- res.table[res.table$country==input_country & res.table$var=="H",]
+res_A_country <- res.table[res.table$country==input_country & res.table$var=="A",]
+res_E_country <- res.table[res.table$country==input_country & res.table$var=="E",]
+
 
 
 

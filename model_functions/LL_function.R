@@ -20,7 +20,7 @@ LL_simple  <- function(DATA_INPUT, input_country, res.table){
   times_A_country <- res_A_country$time
   times_E_country <- res_E_country$time
   
-  # For the datapoints check how far model from data 
+  # For the datapoints check how far model from data: GK ERROR here: res_H_country no necessarily correct year! 
   for (i in 1:length(LL_H_country)) {
     LL_H_country[i] = res_H_country$percent[i]*log(eval(parse(text=paste("DATA_INPUT$model",times_H_country[i],".H",sep="")))) + 
       (1- res_H_country$percent[i])*log(1-eval(parse(text=paste("DATA_INPUT$model",times_H_country[i],".H",sep=""))))   
