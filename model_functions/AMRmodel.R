@@ -40,6 +40,8 @@ AMRmodel_DENMARK <- function(time,state,parameters){ #using package deSolve
     #               LAMBDA_H <- LAMBDA_H* den_use[den_use$year == (2019),]$kg/initial_den_H 
     #               LAMBDA_A <- (LAMBDA_H/H_A_ratio_den)*ratio_den_2021_A }
     
+    LAMBDA_H_temp_input <- 1
+    
     if (time<= 2)  {
       LAMBDA_H_temp <- LAMBDA_H_temp_input* den_use_h[den_use_h$year == round((2000+time),0),]$kg/initial_den_H
       LAMBDA_A_temp <- LAMBDA_H_temp_input/H_A_ratio_den 
@@ -48,19 +50,22 @@ AMRmodel_DENMARK <- function(time,state,parameters){ #using package deSolve
       LAMBDA_A_temp <- (LAMBDA_H_temp_input/H_A_ratio_den)*ratio_den_2003_A
     } else if ((time>3) & (time<= 15))  {  
       LAMBDA_H_temp <- LAMBDA_H_temp_input* den_use_h[den_use_h$year == round((2000+time),0),]$kg/initial_den_H
-      LAMBDA_A_temp <- (LAMBDA_H_temp_input/H_A_ratio_den)*ratio_den_2003_A + (i-3)*(((LAMBDA_H_temp_input/H_A_ratio_den)*ratio_den_2015_A - (LAMBDA_H_temp_input/H_A_ratio_den)*ratio_den_2003_A)/(15-3)) 
+      LAMBDA_A_temp <- (LAMBDA_H_temp_input/H_A_ratio_den)*ratio_den_2003_A + (time-3)*(((LAMBDA_H_temp_input/H_A_ratio_den)*ratio_den_2015_A - (LAMBDA_H_temp_input/H_A_ratio_den)*ratio_den_2003_A)/(15-3)) 
     } else if ((time>15) & (time<= 16))  {  
       LAMBDA_H_temp <- LAMBDA_H_temp_input* den_use_h[den_use_h$year == round((2000+time),0),]$kg/initial_den_H
       LAMBDA_A_temp <- (LAMBDA_H_temp_input/H_A_ratio_den)*ratio_den_2016_A
     }  else if ((time>16) & (time<= 18))   { 
       LAMBDA_H_temp<- LAMBDA_H_temp_input* den_use_h[den_use_h$year == round((2000+time),0),]$kg/initial_den_H
-      LAMBDA_A_temp <- (LAMBDA_H_temp_input/H_A_ratio_den)*ratio_den_2016_A + (i-16)*(((LAMBDA_H_temp_input/H_A_ratio_den)*ratio_den_2018_A - (LAMBDA_H_temp_input/H_A_ratio_den)*ratio_den_2016_A)/(18-16))
+      LAMBDA_A_temp <- (LAMBDA_H_temp_input/H_A_ratio_den)*ratio_den_2016_A + (time-16)*(((LAMBDA_H_temp_input/H_A_ratio_den)*ratio_den_2018_A - (LAMBDA_H_temp_input/H_A_ratio_den)*ratio_den_2016_A)/(18-16))
     } else if ((time>18) & (time<= 20))  {
       LAMBDA_H_temp <- LAMBDA_H_temp_input* den_use_h[den_use_h$year == round((2000+time),0),]$kg/initial_den_H
-      LAMBDA_A_temp <-   (LAMBDA_H_temp_input/H_A_ratio_den)*ratio_den_2018_A + (i-18)*(((LAMBDA_H_temp_input/H_A_ratio_den)*ratio_den_2020_A - (LAMBDA_H_temp_input/H_A_ratio_den)*ratio_den_2018_A)/(20-18)) 
+      LAMBDA_A_temp <-   (LAMBDA_H_temp_input/H_A_ratio_den)*ratio_den_2018_A + (time-18)*(((LAMBDA_H_temp_input/H_A_ratio_den)*ratio_den_2020_A - (LAMBDA_H_temp_input/H_A_ratio_den)*ratio_den_2018_A)/(20-18)) 
     } else if ((time> 20))  {
       LAMBDA_H_temp <- LAMBDA_H_temp_input* den_use_h[den_use_h$year == (2019),]$kg/initial_den_H 
       LAMBDA_A_temp <- (LAMBDA_H_temp_input/H_A_ratio_den)*ratio_den_2021_A }
+    
+    LAMBDA_H <- LAMBDA_H_temp
+    LAMBDA_A <- LAMBDA_A_temp
     
     # Equations governing Human - Animal - Environment interaction 
     dH <- gamma*LAMBDA_H*(1-H) + LAMBDA_H*beta_HH*H*(1-H) + LAMBDA_H*beta_AH*(1-H)*A + LAMBDA_H*beta_EH*(1-H)*E - mu_H*H

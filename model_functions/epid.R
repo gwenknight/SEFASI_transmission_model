@@ -20,16 +20,16 @@ epid <- function(params, returnout, input_country){
     out <- as.data.frame(ode(y=state,time=vectTime,func=AMRmodel_DENMARK,parms=params))
   } else if  (input_country=="england"){
     out <- as.data.frame(ode(y=state,time=vectTime,func=AMRmodel_ENGLAND,parms=params))
-  } else{
-      out <- as.data.frame(ode(y=state,time=vectTime,func=AMRmodel_SENEGAL,parms=params))
-    }
-
+  } else if (input_country == "senegal"){
+    out <- as.data.frame(ode(y=state,time=vectTime,func=AMRmodel_SENEGAL,parms=params))
+  }
+  
   out$time = out$time+epid.start #rescale the time so that it runs from 2000 onwards 
   
   # Add in year
   for(i in 1:22){
-  assign( paste("model",1999+i,".H",sep=""),
-          out$H[out$time==1999+i] )
+    assign( paste("model",1999+i,".H",sep=""),
+            out$H[out$time==1999+i] )
     
     assign( paste("model",1999+i,".A",sep=""),
             out$A[out$time==1999+i] )
@@ -37,7 +37,7 @@ epid <- function(params, returnout, input_country){
     assign( paste("model",1999+i,".E",sep=""),
             out$E[out$time==1999+i] )
   }
-
+  
   
   ## if returnout is input as 1 then return out (all data)
   if (returnout ==1){
@@ -109,5 +109,5 @@ epid <- function(params, returnout, input_country){
                model2019.E=model2019.E,
                model2020.E=model2020.E,
                model2021.E=model2021.E
-               ))}
+      ))}
 }

@@ -22,6 +22,7 @@ source("plot_functions/plotfits.R")
 source("plot_functions/plotfits2.R")
 
 ##### Generate parameter samples
+set.seed(12345)
 p1<-sampling(500000) # go big to get lots as criterion remove lots
 ## Add final limitations
 p1 <- p1[p1$beta_EA >= p1$beta_EH, ] # removes a lot
@@ -36,6 +37,22 @@ write.csv(p1,"output/parameter_set_100000.csv")
 source("plot_functions/explore_and_plot_time_varying_usage.R") 
 
 
+
+### Raw data
+den_use <- usage.table %>% filter(country == "denmark")
+
+#### Add in missing data for 2020 and 2000
+# # ?assumption leave out 2020 point  (8.9) because not comparable to just "cephalosporins"
+## Assume 2020 levels same as 2019 as no data 
+temp_2020_row_extra <- usage.table[usage.table$country=="denmark" &usage.table$subsource=="all humans" & usage.table$year == (2019),] #this is to make sure 2020 point fits into function assumption 2020= 2019
+temp_2020_row_extra$year <- 2020
+
+#for AMRmodel.R to make sense we need to add data before 2001: assume same in 2000 as in 2001
+temp_2000_row_extra <- usage.table[usage.table$country=="denmark" &usage.table$subsource=="all humans" & usage.table$year == (2001),] #this is to make sure 2020 point fits into function assumption 2020= 2019
+temp_2000_row_extra$year <- 2000
+usage.table <- rbind(usage.table,temp_2020_row_extra,temp_2000_row_extra)
+
+den_use_h <- usage.table[usage.table$country=="denmark" &usage.table$subsource=="all humans",c("year","kg")]
 ##################################### Run the simulator outFUN for the Latin-Hypercube samples generated above
 # Not parallel
 #ptm <- proc.time() #time run 
@@ -45,19 +62,97 @@ source("plot_functions/explore_and_plot_time_varying_usage.R")
 
 p1 <- read.csv("output/parameter_set_100000.csv")[,-1]
 
-### GK: computer 0.5s per run
-ptm <- proc.time() #time run 
-outFUN(p1[1:10000,],"england" #the file name 
-) 
-proc.time() - ptm
+# Run in parallel
+nc = detectCores()
+source("model_functions/epid.R")
 
-ptm <- proc.time() #time run 
-outFUN(p1[1:10000,],"denmark" #the file name
-) 
-proc.time() - ptm
 
-ptm <- proc.time() #time run 
-outFUN(p1[1:10000,],"senegal" #the file name
-) 
-proc.time() - ptm
+### SENEGAL 
+# Make cluster
+cl = makeCluster(nc-3)
+registerDoParallel(cl)
 
+# Export things to the cluster
+clusterExport(cl, c("epid","ode"))
+clusterEvalQ(cl, library("tidyverse", character.only = TRUE))
+clusterEvalQ(cl, source("model_functions/AMRModel.R"))
+clusterEvalQ(cl, source("plot_functions/explore_and_plot_time_varying_usage.R"))
+
+# Use the parLapply function to run your function in parallel
+output_results <-""
+output_results <- parLapply(cl, split(p1, row(p1)), function(x) epid(x,0, "senegal")) # for each country j
+
+# Unlist and bind the results into a matrix
+output_matrix <- do.call(rbind, output_results)
+
+# Save them 
+write.csv(output_matrix, paste0("fits/","senegal",dim(output_matrix)[1],".csv"))
+
+# Stop the cluster
+stopCluster(cl)
+
+### DENMARK 
+# Make cluster
+cl = makeCluster(nc-3)
+registerDoParallel(cl)
+
+# Export things to the cluster
+clusterExport(cl, c("epid","ode"))
+clusterEvalQ(cl, library("tidyverse", character.only = TRUE))
+clusterEvalQ(cl, source("model_functions/AMRModel.R"))
+clusterEvalQ(cl, source("plot_functions/explore_and_plot_time_varying_usage.R"))
+
+# Use the parLapply function to run your function in parallel
+output_results <- parLapply(cl, split(p1, row(p1)), function(x) epid(x,0, "denmark")) # for each country j
+
+# Unlist and bind the results into a matrix
+output_matrix <- do.call(rbind, output_results)
+
+# Save them 
+write.csv(output_matrix, paste0("fits/","denmark",dim(output_matrix)[1],".csv"))
+
+# Stop the cluster
+stopCluster(cl)
+
+### ENGLAND 
+# Make cluster
+cl = makeCluster(nc-3)
+registerDoParallel(cl)
+
+# Export things to the cluster
+clusterExport(cl, c("epid","ode"))
+clusterEvalQ(cl, library("tidyverse", character.only = TRUE))
+clusterEvalQ(cl, source("model_functions/AMRModel.R"))
+clusterEvalQ(cl, source("plot_functions/explore_and_plot_time_varying_usage.R"))
+
+# Use the parLapply function to run your function in parallel
+output_results <- parLapply(cl, split(p1, row(p1)), function(x) epid(x,0, "england")) # for each country j
+
+# Unlist and bind the results into a matrix
+output_matrix <- do.call(rbind, output_results)
+
+# Save them 
+write.csv(output_matrix, paste0("fits/","england",dim(output_matrix)[1],".csv"))
+
+# Stop the cluster
+stopCluster(cl)
+
+
+
+# ###### Not working  -> gives same results for Denmark and Senegal? 
+# ### GK: computer 0.5s per run
+# ptm <- proc.time() #time run 
+# outFUN(p1[1:1000,],"england" #the file name 
+# ) 
+# proc.time() - ptm
+# 
+# ptm <- proc.time() #time run 
+# outFUN(p1[1:1000,],"denmark" #the file name
+# ) 
+# proc.time() - ptm
+# 
+# ptm <- proc.time() #time run 
+# outFUN(p1[1:1000,],"senegal" #the file name
+# ) 
+# proc.time() - ptm
+# 

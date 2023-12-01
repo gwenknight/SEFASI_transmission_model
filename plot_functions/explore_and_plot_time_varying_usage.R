@@ -15,7 +15,7 @@ initial_eng_A = as.numeric(eng_use %>% filter(source == "animals", year == min(e
 time1_eng<- min(eng_use$year) - 2000 #13
 time2_eng<- max(eng_use$year) - 2000 #20
 
-# Ratio of use in humans to animals 
+# Ratio of use in humans to animals at end point
 ratio_eng_2017_H <-  as.numeric(eng_use %>% filter(source == "humans", year == 2017) %>% select("kg"))/initial_eng_H
 ratio_eng_2017_A <-  as.numeric(eng_use %>% filter(source == "animals", year == max(eng_use$year)) %>% select("kg"))/initial_eng_A
 H_A_ratio_eng <-initial_eng_H/initial_eng_A
@@ -102,7 +102,6 @@ usage.table <- rbind(usage.table,temp_2020_row_extra,temp_2000_row_extra)
 
 den_use_h <- usage.table[usage.table$country=="denmark" &usage.table$subsource=="all humans",c("year","kg")]
 
-
 # Break points for Denmark data
 time1_den <- 2
 time2_den <- 3
@@ -158,7 +157,7 @@ LAMBDA_time <- function(max_time){
       LAMBDA_H_temp <- LAMBDA_H_temp_input* den_use_h[den_use_h$year == (2019),]$kg/initial_den_H 
       LAMBDA_A_temp <- (LAMBDA_H_temp_input/H_A_ratio_den)*ratio_den_2021_A }
     
-    #print(c(i,LAMBDA_H_temp, LAMBDA_A_temp))
+    print(c(i,LAMBDA_H_temp, LAMBDA_A_temp))
     
     temp_time_H[i] <- LAMBDA_H_temp
     temp_time_A[i] <- LAMBDA_A_temp
@@ -192,7 +191,7 @@ ggplot(data=usage.table[usage.table$country=="denmark" & usage.table$subsource %
   scale_color_manual(name="",values = c("humans" = "#3B9AB2","animals" = "darkgreen", "environment" ="#EBCC2A" ))+
   theme(legend.position = 'right')+guides(colour=guide_legend(ncol=1))+
   geom_point(data=as.data.frame(H_data),aes(time,H),col="darkblue")+geom_point(data=as.data.frame(A_data),aes(time,A),col="darkgreen")+
-  scale_y_continuous(limits = c(0, 1.01 * max(den_use$kg)))
-# geom_line(data=as.data.frame(H_data),aes(time,H),col="darkblue")+geom_line(data=as.data.frame(A_data),aes(time,A),col="darkgreen")#+
+  scale_y_continuous(limits = c(0, 1.01 * max(den_use$kg))) + 
+ geom_line(data=as.data.frame(H_data),aes(time,H),col="darkblue")+geom_line(data=as.data.frame(A_data),aes(time,A),col="darkgreen")#+
 ggsave(paste("plots/time_varying_usage_denmark", ".png",sep=""), width = 150, height = 100, units='mm',dpi=1000)
 

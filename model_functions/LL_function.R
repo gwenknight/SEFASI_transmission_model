@@ -5,20 +5,25 @@
 
 LL_simple  <- function(DATA_INPUT, input_country, res.table){
   
+  # Extract the resistance prevalence data for this country 
   res_H_country <- res.table[res.table$country==input_country & res.table$var=="H",]
   res_A_country <- res.table[res.table$country==input_country & res.table$var=="A",]
   res_E_country <- res.table[res.table$country==input_country & res.table$var=="E",]
   
+  # Generate empty matrix to store LL
   LL_H_country <- rep(NA,nrow(res_H_country))
   LL_A_country <- rep(NA,nrow(res_A_country))
   LL_E_country <- rep(NA,nrow(res_E_country))
   
+  # At what times are there data to compare to? 
   times_H_country <- res_H_country$time
   times_A_country <- res_A_country$time
   times_E_country <- res_E_country$time
   
+  # For the datapoints check how far model from data 
   for (i in 1:length(LL_H_country)) {
-    LL_H_country[i] = res_H_country$percent[i]*log(eval(parse(text=paste("DATA_INPUT$model",times_H_country[i],".H",sep="")))) + (1- res_H_country$percent[i])*log(1-eval(parse(text=paste("DATA_INPUT$model",times_H_country[i],".H",sep=""))))   
+    LL_H_country[i] = res_H_country$percent[i]*log(eval(parse(text=paste("DATA_INPUT$model",times_H_country[i],".H",sep="")))) + 
+      (1- res_H_country$percent[i])*log(1-eval(parse(text=paste("DATA_INPUT$model",times_H_country[i],".H",sep=""))))   
   }
   
   for (i in 1:length(LL_A_country)) {

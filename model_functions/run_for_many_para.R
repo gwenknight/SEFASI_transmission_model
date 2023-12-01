@@ -27,7 +27,7 @@ outFUN <- function(bbb,input_country){ #feed in the sample (bbb), along with the
                                    "ratio_den_2003_H","ratio_den_2003_A",
                                    "ratio_den_2015_H","ratio_den_2015_A",
                                    "ratio_den_2016_H","ratio_den_2016_A",
-                                   "ratio_den_2018_H","ratio_den_2018_A","ratio_den_2020_A","ratio_den_2021_A","H_A_ratio_den","H_A_ratio_eng"#,"den_usage"
+                                   "ratio_den_2018_H","ratio_den_2018_A","ratio_den_2020_A","ratio_den_2021_A","H_A_ratio_den","H_A_ratio_eng", "den_use_h", "input_country"#,"den_usage"
   ),
   envir=environment())
   

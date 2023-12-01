@@ -9,9 +9,9 @@ sampling <- function(aaa){
   Samples_SIR <- randomLHS(aaa, 16) # Generate aaa number of the needed 16 parameters between 0 and 1
   
   ### Exposure to antibiotics
-  Samples_SIR[,1] <- 0 + (0.2-0)*Samples_SIR[,1]#LAMBDA_H #vary to max 
+  Samples_SIR[,1] <- 0 + (1-0)*Samples_SIR[,1]#LAMBDA_H #vary to max 
   Samples_SIR[,2] <- 0 + (Samples_SIR[,1]-0)*Samples_SIR[,2]   #LAMBDA_A ##vary to max so that A<H
-  Samples_SIR[,3] <- 0 + (0.2-0)*Samples_SIR[,3]#no information yet 
+  Samples_SIR[,3] <- 0 + (1-0)*Samples_SIR[,3]#no information yet 
   
   ### Transmission within settings
   Samples_SIR[,4] <- input.table[input.table$parameter=='beta_HH_min',]$value + 
@@ -29,7 +29,8 @@ sampling <- function(aaa){
   Samples_SIR[,8]  <- 0 + (1-0)*Samples_SIR[,8]  #beta_HE
   
   ### Clearance of AMR 
-  Samples_SIR[,13] <- 0 + (input.table[input.table$parameter=='mu_max',]$value-0)*Samples_SIR[,13]  #mu_H #Carriage of ESBL or CRE at 12 months  community 25.4% patients 35.2%
+  ##Carriage of ESBL or CRE at 12 months  community 25.4% patients 35.2%
+  Samples_SIR[,13] <- 0 + (input.table[input.table$parameter=='mu_max',]$value-0)*Samples_SIR[,13]  #mu_H 
   Samples_SIR[,14] <-  0 + (input.table[input.table$parameter=='mu_max',]$value-0)*Samples_SIR[,14]   #mu_A
   Samples_SIR[,15] <-  0 + (input.table[input.table$parameter=='mu_max',]$value-0)*Samples_SIR[,15]   #mu_E
   

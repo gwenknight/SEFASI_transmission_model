@@ -10,9 +10,33 @@ setwd(here())
 
 ################################  MODEL OUTPUT #####################################
 ###### Read in model runs on 100,000 parameter inputs
-FULLDATA_DENMARK <-fread("output/OUT_denmark.csv") 
-FULLDATA_ENGLAND <-fread("output/OUT_england.csv") 
-FULLDATA_SENEGAL <-fread("output/OUT_senegal.csv") 
+# FULLDATA_DENMARK <-fread("output/OUT_denmark.csv") # old from outfun
+# FULLDATA_ENGLAND <-fread("output/OUT_england.csv")
+# FULLDATA_SENEGAL <-fread("output/OUT_senegal.csv") 
+
+# new from cluster run 
+FULLDATA_DENMARK <-fread("fits/denmark100000.csv")
+FULLDATA_ENGLAND <-fread("fits/england100000.csv")
+FULLDATA_SENEGAL <-fread("fits/senegal100000.csv")
+
+
+FULLDATA <- rbind(FULLDATA_DENMARK %>% mutate(ctry = "denmark", runs = seq(1, dim(FULLDATA_DENMARK)[1])), 
+                  FULLDATA_ENGLAND %>% mutate(ctry = "england", runs = seq(1, dim(FULLDATA_ENGLAND)[1])), 
+                  FULLDATA_SENEGAL %>% mutate(ctry = "senegal", runs = seq(1, dim(FULLDATA_SENEGAL)[1])))
+
+################################ EXPLORE ###########################################
+FULLDATA2 <- FULLDATA %>% pivot_longer(cols = model2000.H:model2021.E) 
+FULLDATA2$year2 <- sub('.*model', '', FULLDATA2$name)
+FULLDATA2$year <- str_split_fixed(FULLDATA2$year2, fixed("."), 2)[, 1]
+FULLDATA2$env <- str_split_fixed(FULLDATA2$year2, fixed("."), 2)[, 2]
+FULLDATA <- FULLDATA2 %>% select(-c(year2, name))
+
+ggplot(FULLDATA, aes(x=year, y = value, group = runs)) + geom_line() + 
+  facet_grid(ctry ~ env)
+
+ggplot(FULLDATA %>% filter(runs < 5), aes(x=year, y = value, group = runs)) + geom_line(aes(col = factor(runs))) + 
+  facet_grid(ctry ~ env)
+
 
 
 ################################  FITTING DATA #####################################
@@ -83,6 +107,7 @@ write.csv(best_100_denmark,"output/best_100_denmark.csv")
 
 ################################ boxplot of parameters which are selected #####################################
 source("plot_functions/boxplots.R") # GK? use ENGLAND as example
+source("plot_functions/plotfits2.R") # GK? use ENGLAND as example
 
 ################################  plotfits function, in order to plot the fits #####################################
 #plotfits2(FITS_DENMARK,"denmark",0.025) 
