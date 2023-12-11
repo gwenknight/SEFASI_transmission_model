@@ -6,5 +6,5 @@ epid.start,2000
 epid.duration,50
 int.time,2023
 eval.time,20
-beta_HH_min,0.3
+beta_HH_min,0
 mu_max,1
