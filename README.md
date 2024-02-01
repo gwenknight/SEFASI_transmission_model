@@ -5,3 +5,10 @@ A repository with the code to run the transmission model used in the SEFASI proj
 To run the model use the code in 
 "run_model.R"
 - this will generate a parameter set and run the model for this for each of the 3 countries (Denmark Senegal England)
+
+To explore this model output and select the parameter sets that generate runs closest to the data 
+use the code in 
+"explore_model_output.R"
+
+To generate the intervention impact use 
+"run_interventions.R"
