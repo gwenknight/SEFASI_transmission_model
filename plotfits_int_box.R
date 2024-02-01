@@ -2,7 +2,8 @@ plotfits_int_box <- function(SIR.unique,input_country){
   for(j in (1:19)){
     for(i in (1:nrow(SIR.unique))){
       assign(paste("int",j,"plotint", i, sep = ""), 
-             pmap(c(SIR.unique[i,LAMBDA_H:epsilon],returnout=0,intervention=j,input_country),epid_intervention)[[1]]
+             #pmap(c(SIR.unique[i,"LAMBDA_H":"epsilon"],returnout=0,intervention=j,input_country),epid_intervention)[[1]]
+             pmap(c(SIR.unique[1,] %>% select(c("LAMBDA_H":"epsilon")),returnout=0,intervention=j,input_country),epid_intervention)[[1]]
       )}
     
     tempdataint<- rep(0,nrow(SIR.unique))

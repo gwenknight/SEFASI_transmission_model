@@ -30,7 +30,7 @@ epid_intervention <- function(
   
   # New initial time
   state2<-c(H=out$H[out$time==int.time],A=out$A[out$time==int.time],E=out$E[out$time==int.time])
-  if (intervention==1){ #
+  if (intervention==1){ # 
     params2 <- c(LAMBDA_H=0,
                  LAMBDA_A=LAMBDA_A, 
                  LAMBDA_E=LAMBDA_E,
@@ -128,36 +128,64 @@ epid_intervention <- function(
                  beta_HH= beta_HH*0.75,  beta_AA=beta_AA,  beta_HE=beta_HE,  beta_AH=beta_AH,
                  beta_EH=beta_EH,  beta_HA=beta_HA,  beta_EA=beta_EA,  beta_AE=beta_AE,  
                  mu_H = mu_H, mu_A = mu_A, mu_E = mu_E,gamma=gamma,beta_EE=beta_EE,epsilon=epsilon)
-    
-  } else if (intervention==15){ #NSP-AMR
-    params2 <- c(LAMBDA_H=LAMBDA_H*0.8,
-                 LAMBDA_A=LAMBDA_A*0.7, 
+    #### New ones - above just variations on single parameters 
+  } else if (intervention==15){ #DENMARK NAP
+    params2 <- c(LAMBDA_H=LAMBDA_H*0.9,
+                 LAMBDA_A=LAMBDA_A*0.8, 
                  LAMBDA_E=LAMBDA_E,
                  beta_HH= beta_HH*0.8,  beta_AA=beta_AA*0.8,  beta_HE=beta_HE*0.8,  beta_AH=beta_AH*0.8,
                  beta_EH=beta_EH*0.8,  beta_HA=beta_HA*0.8,  beta_EA=beta_EA*0.8,  beta_AE=beta_AE*0.8,  
                  mu_H = mu_H, mu_A = mu_A, mu_E = mu_E,gamma=gamma,beta_EE=beta_EE*0.8,epsilon=epsilon)
-  } else if (intervention==16){ #NSP-AMR with 70% instead of 80%
-    params2 <- c(LAMBDA_H=LAMBDA_H*0.8,
-                 LAMBDA_A=LAMBDA_A*0.7, 
+  } else if (intervention==16){ # ENGLAND NAP
+    params2 <- c(LAMBDA_H=LAMBDA_H*0.85,
+                 LAMBDA_A=LAMBDA_A*0.75, 
                  LAMBDA_E=LAMBDA_E,
-                 beta_HH= beta_HH*0.7,  beta_AA=beta_AA*0.7,  beta_HE=beta_HE*0.7,  beta_AH=beta_AH*0.7,
-                 beta_EH=beta_EH*0.7,  beta_HA=beta_HA*0.7,  beta_EA=beta_EA*0.7,  beta_AE=beta_AE*0.7,  
-                 mu_H = mu_H, mu_A = mu_A, mu_E = mu_E,gamma=gamma,beta_EE=beta_EE*0.7,epsilon=epsilon)
-  } else if (intervention==17){ #50% reduction in drinking water
+                 beta_HH= beta_HH*0.8,  beta_AA=beta_AA*0.8,  beta_HE=beta_HE*0.8,  beta_AH=beta_AH*0.8,
+                 beta_EH=beta_EH*0.8,  beta_HA=beta_HA*0.8,  beta_EA=beta_EA*0.8,  beta_AE=beta_AE*0.8,  
+                 mu_H = mu_H, mu_A = mu_A, mu_E = mu_E,gamma=gamma,beta_EE=beta_EE*0.8,epsilon=epsilon)
+  } else if (intervention==17){ #SENEGAL NAP 
+    params2 <- c(LAMBDA_H=LAMBDA_H*0.95,
+                 LAMBDA_A=LAMBDA_A*0.8, 
+                 LAMBDA_E=LAMBDA_E,
+                 beta_HH= beta_HH*0.9,beta_AA=beta_AA*0.9,  beta_HE=beta_HE*0.9,  beta_AH=beta_AH*0.9,
+                 beta_EH=beta_EH*0.9, beta_HA=beta_HA*0.9,  beta_EA=beta_EA*0.9,  beta_AE=beta_AE*0.9,  
+                 mu_H = mu_H, mu_A = mu_A, mu_E = mu_E,gamma=gamma,beta_EE=beta_EE*0.9,epsilon=epsilon)
+  } else if (intervention==18){ # FARM 
     params2 <- c(LAMBDA_H=LAMBDA_H,
+                 LAMBDA_A=LAMBDA_A * 0.5, 
+                 LAMBDA_E=LAMBDA_E,
+                 beta_HH= beta_HH,  beta_AA=beta_AA,  beta_HE=beta_HE,  beta_AH=beta_AH*0.5,
+                 beta_EH=beta_EH,  beta_HA=beta_HA*0.5,  beta_EA=beta_EA,  beta_AE=beta_AE,  
+                 mu_H = mu_H, mu_A = mu_A, mu_E = mu_E,gamma=gamma,beta_EE=beta_EE,epsilon=epsilon)
+  }else if (intervention==19){ # HUMAN
+    params2 <- c(LAMBDA_H=LAMBDA_H*0.5,
                  LAMBDA_A=LAMBDA_A, 
                  LAMBDA_E=LAMBDA_E,
-                 beta_HH= beta_HH,  beta_AA=beta_AA,  beta_HE=beta_HE,  beta_AH=beta_AH,
-                 beta_EH=beta_EH*0.5,  beta_HA=beta_HA,  beta_EA=beta_EA*0.5,  beta_AE=beta_AE,  
+                 beta_HH= beta_HH*0.5,  beta_AA=beta_AA,  beta_HE=beta_HE,  beta_AH=beta_AH,
+                 beta_EH=beta_EH,  beta_HA=beta_HA,  beta_EA=beta_EA,  beta_AE=beta_AE,  
                  mu_H = mu_H, mu_A = mu_A, mu_E = mu_E,gamma=gamma,beta_EE=beta_EE,epsilon=epsilon)
-  } else if (intervention==18){ #human animal interaction reduced by 50%
+  }else if (intervention==20){ # ENV
+    params2 <- c(LAMBDA_H=LAMBDA_H,
+                 LAMBDA_A=LAMBDA_A, 
+                 LAMBDA_E=LAMBDA_E*0.5,
+                 beta_HH= beta_HH*0.5,  beta_AA=beta_AA,  beta_HE=beta_HE*0.5,  beta_AH=beta_AH,
+                 beta_EH=beta_EH*0.5,  beta_HA=beta_HA,  beta_EA=beta_EA*0.5,  beta_AE=beta_AE*0.5,  
+                 mu_H = mu_H, mu_A = mu_A, mu_E = mu_E,gamma=gamma,beta_EE=beta_EE*0.5,epsilon=epsilon)
+  }else if (intervention==21){ # HUMAN + ANIMAL CONTACT
     params2 <- c(LAMBDA_H=LAMBDA_H,
                  LAMBDA_A=LAMBDA_A, 
                  LAMBDA_E=LAMBDA_E,
                  beta_HH= beta_HH,  beta_AA=beta_AA,  beta_HE=beta_HE,  beta_AH=beta_AH*0.5,
                  beta_EH=beta_EH,  beta_HA=beta_HA*0.5,  beta_EA=beta_EA,  beta_AE=beta_AE,  
                  mu_H = mu_H, mu_A = mu_A, mu_E = mu_E,gamma=gamma,beta_EE=beta_EE,epsilon=epsilon)
-  }else if (intervention==19){ # 50 % in use
+  }else if (intervention==22){ # TRANSMISSION
+    params2 <- c(LAMBDA_H=LAMBDA_H*0.5,
+                 LAMBDA_A=LAMBDA_A, 
+                 LAMBDA_E=LAMBDA_E,
+                 beta_HH= beta_HH*0.5,  beta_AA=beta_AA*0.5,  beta_HE=beta_HE*0.5,  beta_AH=beta_AH*0.5,
+                 beta_EH=beta_EH*0.5,  beta_HA=beta_HA*0.5,  beta_EA=beta_EA*0.5,  beta_AE=beta_AE*0.5,  
+                 mu_H = mu_H, mu_A = mu_A, mu_E = mu_E,gamma=gamma,beta_EE=beta_EE*0.5,epsilon=epsilon)
+  }else if (intervention==23){ # USAGE
     params2 <- c(LAMBDA_H=LAMBDA_H*0.5,
                  LAMBDA_A=LAMBDA_A*0.5, 
                  LAMBDA_E=LAMBDA_E*0.5,

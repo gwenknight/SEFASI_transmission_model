@@ -9,10 +9,11 @@ plotfits2 <- function(SIR.unique,input_country,MARGIN_TOLERANCE){
   
   sup_inf_data<-sup_inf_data[!is.na(sup_inf_data$sup),]
   
-  
+  # Run the model for each parameter set
   for(i in (1:nrow(SIR.unique))){
     assign(paste("plot", i, sep = ""), 
-           pmap(c(SIR.unique[i,LAMBDA_H:epsilon],returnout=1,input_country),epid)[[1]]
+           pmap(c(SIR.unique[i,] %>% select("LAMBDA_H":"epsilon"),
+                  returnout=1,input_country),epid)[[1]]
     )}
   
   dataH=data.frame(time=plot1$time)
