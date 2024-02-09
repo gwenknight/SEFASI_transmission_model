@@ -3,7 +3,9 @@
 
 ### Log likelihood simple for each row of data
 
-LL_simple  <- function(DATA_INPUT, input_country, res.table){
+
+### Least squares
+LS_simple  <- function(DATA_INPUT, input_country, res.table){
   
   # Extract the resistance prevalence data for this country 
   res_H_country <- res.table[res.table$country==input_country & res.table$var=="H",]
@@ -22,23 +24,32 @@ LL_simple  <- function(DATA_INPUT, input_country, res.table){
   
   # For the datapoints check how far model from data: GK ERROR here: res_H_country no necessarily correct year! 
   for (i in 1:length(LL_H_country)) {
-    LL_H_country[i] = res_H_country$percent[i]*log(eval(parse(text=paste("DATA_INPUT$model",times_H_country[i],".H",sep="")))) + 
-      (1- res_H_country$percent[i])*log(1-eval(parse(text=paste("DATA_INPUT$model",times_H_country[i],".H",sep=""))))   
+    #LL_H_country[i] = res_H_country$percent[i]*log(eval(parse(text=paste("DATA_INPUT$model",times_H_country[i],".H",sep="")))) + 
+    #  (1- res_H_country$percent[i])*log(1-eval(parse(text=paste("DATA_INPUT$model",times_H_country[i],".H",sep=""))))   
+    # Least squares
+    LL_H_country[i] = (res_H_country$percent[i]/100 - eval(parse(text=paste("DATA_INPUT$model",times_H_country[i],".H",sep=""))))^2
+    
   }
   
   for (i in 1:length(LL_A_country)) {
-    LL_A_country[i] = res_A_country$percent[i]*log(eval(parse(text=paste("DATA_INPUT$model",times_A_country[i],".A",sep="")))) + (1- res_A_country$percent[i])*log(1-eval(parse(text=paste("DATA_INPUT$model",times_A_country[i],".A",sep=""))))   
+    #LL_A_country[i] = res_A_country$percent[i]*log(eval(parse(text=paste("DATA_INPUT$model",times_A_country[i],".A",sep="")))) + (1- res_A_country$percent[i])*log(1-eval(parse(text=paste("DATA_INPUT$model",times_A_country[i],".A",sep=""))))   
+    
+    # Least squares
+    LL_A_country[i] = (res_A_country$percent[i]/100 - eval(parse(text=paste("DATA_INPUT$model",times_A_country[i],".A",sep=""))))^2
   }
   
   for (i in 1:length(LL_E_country)) {
-    LL_E_country[i] = res_E_country$percent[i]*log(eval(parse(text=paste("DATA_INPUT$model",times_E_country[i],".E",sep="")))) + (1- res_E_country$percent[i])*log(1-eval(parse(text=paste("DATA_INPUT$model",times_E_country[i],".E",sep=""))))   
+    #LL_E_country[i] = res_E_country$percent[i]*log(eval(parse(text=paste("DATA_INPUT$model",times_E_country[i],".E",sep="")))) + (1- res_E_country$percent[i])*log(1-eval(parse(text=paste("DATA_INPUT$model",times_E_country[i],".E",sep=""))))   
+    # Least squares
+    LL_E_country[i] = (res_E_country$percent[i]/100 - eval(parse(text=paste("DATA_INPUT$model",times_E_country[i],".E",sep=""))))^2
   }
   
   
-  MLE<- sum(LL_H_country)/length(LL_H_country) + sum(LL_A_country)/length(LL_A_country) +  sum(LL_E_country)/length(LL_E_country)
+  #MLE<- sum(LL_H_country)/length(LL_H_country) + sum(LL_A_country)/length(LL_A_country) +  sum(LL_E_country)/length(LL_E_country)
+  LS <- sum(LL_H_country) + sum(LL_A_country) +  sum(LL_E_country)
   #print(MLE)
   
-  return(MLE)
+  return(LS)
 }
 
 ### Overview Log likelihood function
