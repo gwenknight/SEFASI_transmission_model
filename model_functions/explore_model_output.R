@@ -41,15 +41,18 @@ ggplot(FULLDATA %>% filter(runs < 5), aes(x=year, y = value, group = runs)) + ge
 
 FULLDATA %>% filter(ctry == "denmark", year == 2021, env == "H") %>% filter(value < 0.2)
 
-ggplot(FULLDATA %>% filter(runs %in% c(1,100,1405,17284)), aes(x=year, y = value, group = ctry)) + geom_line(aes(col = factor(ctry))) + 
+ggplot(FULLDATA %>% filter(runs %in% c(136, 218, 308, 820)), aes(x=year, y = value, group = ctry)) + geom_line(aes(col = factor(ctry))) + 
   facet_grid(runs ~ env)
 
+########################################################################################
+########################################################################################
+########################################################################################
 ################################  FITTING DATA #####################################
 ### Resistance prevalence data cleaned 
-source("model_functions/res_prev_band_data.R")
+#source("model_functions/res_prev_band_data.R")
 
 #### Antibiotic usage
-usage.table <- as.data.frame(read.csv("data/usage.csv"))
+#usage.table <- as.data.frame(read.csv("data/usage.csv"))
 
 #### Plot this input data - only do first time
 # source("plotinputdata.R")
@@ -79,22 +82,22 @@ MLE_ENGLAND <- rep(NA,nrow(FULLDATA_ENGLAND) )
 MLE_DENMARK <- rep(NA,nrow(FULLDATA_DENMARK) )
 
 #### Data with one data point per time point
-res.table.fit <- read_csv("data/res.table.fit.csv")
+res.table.fit <- read_csv("data/res.table.fit.csv") %>% mutate(prop = percent / 100)
 ggplot(res.table.fit, aes(x=time, y = percent, group = country)) + geom_line(aes(col = country)) + facet_wrap(~var) + geom_point(aes(col = country))
 
 
 for(i in 1:nrow(FULLDATA_SENEGAL)) {
-  MLE_SENEGAL[i] =  LL_simple(FULLDATA_SENEGAL[i,], "senegal", res.table)
+  MLE_SENEGAL[i] =  LL_simple(FULLDATA_SENEGAL[i,], "senegal", res.table.fit)
   #print(i)
 }
 
 for(i in 1:nrow(FULLDATA_DENMARK)) {
-  MLE_DENMARK[i] =  LL_simple(FULLDATA_DENMARK[i,], "denmark", res.table)
+  MLE_DENMARK[i] =  LL_simple(FULLDATA_DENMARK[i,], "denmark", res.table.fit)
  # print(i)
 }
 
 for(i in 1:nrow(FULLDATA_ENGLAND)) {
-  MLE_ENGLAND[i] =  LL_simple(FULLDATA_ENGLAND[i,],"england", res.table)
+  MLE_ENGLAND[i] =  LL_simple(FULLDATA_ENGLAND[i,],"england", res.table.fit)
 #  print(i)
 }
 
@@ -104,6 +107,7 @@ write.csv(MLE_DENMARK,"output/MLE_DENMARK.csv")
 write.csv(MLE_ENGLAND,"output/MLE_ENGLAND.csv")
 
 # Find the max 100 and store
+MLE_SENEGAL[order(-MLE_SENEGAL)[1:100]]
 best_100_senegal <- FULLDATA_SENEGAL[order(-MLE_SENEGAL)[1:100],]
 best_100_england <- FULLDATA_ENGLAND[order(-MLE_ENGLAND)[1:100],]
 best_100_denmark <- FULLDATA_DENMARK[order(-MLE_DENMARK)[1:100],]
@@ -113,27 +117,66 @@ write.csv(best_100_senegal,"output/best_100_senegal.csv")
 write.csv(best_100_england,"output/best_100_england.csv")
 write.csv(best_100_denmark,"output/best_100_denmark.csv")
 
-############## Visualise data 
-ggplot(res.table, aes(x = time, y = percent, group = interaction(var, country))) + geom_line(aes(col= country)) + facet_wrap(~var, ncol = 3)
-res_H_country <- res.table[res.table$country==input_country & res.table$var=="H",]
-res_A_country <- res.table[res.table$country==input_country & res.table$var=="A",]
-res_E_country <- res.table[res.table$country==input_country & res.table$var=="E",]
+########################################################################################
+########################################################################################
+########################################################################################
+############################################ Visualise fits ############################################
+#### Read in what need
+res.table.fit <- read_csv("data/res.table.fit.csv") %>% mutate(prop = percent / 100)
+
+best_100_senegal <- read_csv("output/best_100_senegal.csv")[,-1]
+best_100_denmark <- read_csv("output/best_100_denmark.csv")[,-1]
+best_100_england <- read_csv("output/best_100_england.csv")[,-1]
+
+best <- rbind(best_100_senegal %>% mutate(country = "senegal"),
+              best_100_england %>% mutate(country ="england"),
+              best_100_denmark %>% mutate(country ="denmark"))
+# rename
+c <- colnames(best)
+c[1] <- "run"
+c[68] <- "country"
+colnames(best) <- c
+
+# pivot around
+model_output <- best %>% 
+  pivot_longer("model2000.H":"model2021.E") %>% 
+  mutate(environment = sub(".*\\.", "", name), 
+         year = as.numeric(substring(str_extract(name, "^[^\\.:]+"), nchar(str_extract(name, "^[^\\.:]+"))-3)))
+
+data_fit <- res.table.fit %>% mutate(environment = var)
+
+ggplot(model_output, aes(x=year, y = value, group = run)) + geom_line() + 
+  geom_point(data = data_fit,aes(x=time, y = prop, group = country), col = "red") + 
+  facet_wrap(country~environment,ncol = 3) + 
+  scale_y_continuous("Proportion resistant") + 
+  scale_x_continuous("Year")
+
+ggsave("plots/model_fits.pdf")
+
+ggplot(model_output, aes(x=year, y = value, group = run)) + geom_line() + 
+  geom_point(data = data_fit,aes(x=time, y = prop, group = country), col = "red") + 
+  facet_wrap(environment~country,ncol = 3) + 
+  scale_y_continuous("Proportion resistant") + 
+  scale_x_continuous("Year")
+
+ggsave("plots/model_fits_flip.pdf")
+
+############# Visualise parameter outputs
+p1 <- read.csv("output/parameter_set_100000.csv")
+
+runs <- best$run
+length(unique(runs)) # not the same for the countries => 300 unique 
+
+write_csv(cbind(p1[runs,], "country" = best$country), "output/best_parameter_sets.csv")
+
+#### Visualise parameters
+fit_para <- cbind(p1[runs,], best$country) %>% pivot_longer(cols = LAMBDA_H:epsilon)
+colnames(fit_para) <- c("pset","country","para","value")
+ggplot(fit_para, aes(x=para, y = value)) + geom_violin() + facet_wrap(~country, ncol = 1)
+ggplot(fit_para, aes(x=para, y = value)) + geom_boxplot() + facet_wrap(~country, ncol = 1)
 
 
-
-
-################################ boxplot of parameters which are selected #####################################
-source("plot_functions/boxplots.R") # GK? use ENGLAND as example
-source("plot_functions/plotfits2.R") # GK? use ENGLAND as example
-
-################################  plotfits function, in order to plot the fits #####################################
-#plotfits2(FITS_DENMARK,"denmark",0.025) 
-#plotfits2(FITS_ENGLAND,"england",0.035) 
-#plotfits2(FITS_SENEGAL,"senegal",0.01) 
-
-plotfits2(best_100_senegal,"senegal",0) 
-plotfits2(best_100_denmark,"denmark",0) 
-plotfits2(best_100_england,"england",0) 
+###############
 
 ### Load functions to run interventions 
 source("model_functions/AMRmodel.R")

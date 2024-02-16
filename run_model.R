@@ -62,6 +62,14 @@ den_use_h <- usage.table[usage.table$country=="denmark" &usage.table$subsource==
 
 p1 <- read.csv("output/parameter_set_100000.csv")[,-1]
 
+## plot to check 
+# p1p <- p1 %>% mutate(run = 1:dim(p1)[1]) %>% pivot_longer(cols = "LAMBDA_H":"epsilon")
+# ggplot(p1p, aes(x=run, y = value, group = name)) + geom_point() + facet_wrap(~name, ncol = 5)
+# ggsave("plots/parameter_distribution.pdf")
+# 
+# ggplot(p1p, aes(x=name, y = value, group = name)) + geom_violin()
+# ggsave("plots/parameter_distribution_violin.pdf")
+
 # Run in parallel
 nc = detectCores()
 source("model_functions/epid.R")
