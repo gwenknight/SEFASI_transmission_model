@@ -30,70 +30,121 @@ epid_intervention <- function(
   
   # New initial time
   state2<-c(H=out$H[out$time==int.time],A=out$A[out$time==int.time],E=out$E[out$time==int.time])
-  params2 <- params
-  if (intervention==1){ #
-    params2$LAMBDA_H <- 0;
-  }else if (intervention==2){ #
-    params2$LAMBDA_A = 0;
-  }else if (intervention==3) {
-    params2$LAMBDA_E=0;
-  }else if (intervention==4){
-    params2$beta_HH=0;
+  if (intervention==1){ # 
+    params2 <- params
+    params2[,"LAMBDA_H"] <- 0
+    } else if (intervention==2){ #
+    params2 <- params
+    params2[,"LAMBDA_A"] <- 0
+  } else if (intervention==3) {
+    params2 <- params
+    params2[,"LAMBDA_E"] <- 0
+  } else if (intervention==4){
+    params2 <- params
+    params2[,"beta_HH"] <- 0
   }else if (intervention==5){
-    params2$beta_AA=0;
+    params2 <- params
+    params2[,"beta_AA"] <- 0
   } else if (intervention==6){
-    params2$beta_HE=0;
+    params2 <- params
+    params2[,"beta_EE"] <- 0
   } else if (intervention==7){
-    params2$beta_AH=0;
+    params2 <- params
+    params2[,"beta_AH"] <- 0
+    params2[,"beta_HA"] <- 0
   } else if (intervention==8){
-    params2$beta_EH=0;
+    params2 <- params
+    params2[,"beta_EH"] <- 0
   }else if (intervention==9){
-    params2$beta_HA=0;
+    params2 <- params
+    params2[,"beta_EH"] <- 0
+    params2[,"beta_HE"] <- 0
   }else if (intervention==10){
-    params2$beta_EA=0;
+    params2 <- params
+    params2[,"beta_EA"] <- 0
+    params2[,"beta_AE"] <- 0
   }else if (intervention==11){
-    params2$beta_AE=0;
+    params2 <- params
+    params2[,"beta_EA"] <- 0
   }else if (intervention==12){
-    params2$beta_EE=0;
-  }else if (intervention==13){
-    params2$beta_HH <- params2$beta_HH*0.9
-  }else if (intervention==14){
-    params2$LAMBDA_H=params2$LAMBDA_H*0.75;
-    params2$beta_HH= params2$beta_HH*0.75
-  } else if (intervention==15){ #NSP-AMR
-    params2$LAMBDA_H = params2$LAMBDA_H*0.8;
-    params2$LAMBDA_A = params2$LAMBDA_A*0.7; ### CHECK SHOULD THIS BE 80? GK 
-    params2$beta_HH = params2$beta_HH*0.8;  
-    params2$beta_AA = params2$beta_AA*0.8;
-    params2$beta_HE = params2$beta_HE*0.8;
-    params2$beta_AH = params2$beta_AH*0.8;
-    params2$beta_EH = params2$beta_EH*0.8;  
-    params2$beta_HA = params2$beta_HA*0.8;  
-    params2$beta_EA = params2$beta_EA*0.8;
-    params2$beta_AE = params2$beta_AE*0.8;
-    params2$beta_EE = params2$beta_EE*0.8;
-  } else if (intervention==16){ #NSP-AMR with 70% instead of 80%
-    params2$LAMBDA_H = params2$LAMBDA_H*0.7;
-    params2$LAMBDA_A = params2$LAMBDA_A*0.7; ### CHECK SHOULD THIS BE 80? GK 
-    params2$beta_HH = params2$beta_HH*0.7;  
-    params2$beta_AA = params2$beta_AA*0.7;
-    params2$beta_HE = params2$beta_HE*0.7;
-    params2$beta_AH = params2$beta_AH*0.7;
-    params2$beta_EH = params2$beta_EH*0.7;  
-    params2$beta_HA = params2$beta_HA*0.7;  
-    params2$beta_EA = params2$beta_EA*0.7;
-    params2$beta_AE = params2$beta_AE*0.7;
-    params2$beta_EE = params2$beta_EE*0.7;
-  } else if (intervention==17){ #50% reduction in drinking water
-    params2$beta_EH = params2$beta_EH*0.5;
-    params2$beta_EA = params2$beta_EA*0.5;
-  } else if (intervention==18){ #human animal interaction reduced by 50%
-    params2$beta_AH = params2$beta_AH*0.5;
-    params2$beta_HA = params2$beta_HA*0.5
-  }else if (intervention==19){ # 50 % in use
-    params2$LAMBDA_H = params2$LAMBDA_H*0.5;
-    params2$LAMBDA_A = params2$LAMBDA_A*0.5;
-    params2$LAMBDA_E = params2$LAMBDA_E*0.5;
+    #### New ones - above just variations on single parameters 
+    #DENMARK NAP 
+    params2 <- params
+    params2[,"LAMBDA_H"] <- params[,"LAMBDA_H"]*0.9
+    params2[,"LAMBDA_A"] <- params[,"LAMBDA_A"]*0.8
+    params2[,"beta_HH"] <- params[,"beta_HH"]*0.8
+    params2[,"beta_HA"] <- params[,"beta_HA"]*0.8
+    params2[,"beta_AA"] <- params[,"beta_AA"]*0.8
+    params2[,"beta_AH"] <- params[,"beta_AH"]*0.8
+    params2[,"beta_EE"] <- params[,"beta_EE"]*0.8
+    params2[,"beta_EH"] <- params[,"beta_EH"]*0.8
+    params2[,"beta_HE"] <- params[,"beta_HE"]*0.8
+    params2[,"beta_AE"] <- params[,"beta_AE"]*0.8
+    params2[,"beta_EA"] <- params[,"beta_EA"]*0.8
+  } else if (intervention==13){ # ENGLAND NAP
+    params2 <- params
+    params2[,"LAMBDA_H"] <- params[,"LAMBDA_H"]*0.85
+    params2[,"LAMBDA_A"] <- params[,"LAMBDA_A"]*0.75
+    params2[,"beta_HH"] <- params[,"beta_HH"]*0.8
+    params2[,"beta_HA"] <- params[,"beta_HA"]*0.8
+    params2[,"beta_AA"] <- params[,"beta_AA"]*0.8
+    params2[,"beta_AH"] <- params[,"beta_AH"]*0.8
+    params2[,"beta_EE"] <- params[,"beta_EE"]*0.8
+    params2[,"beta_EH"] <- params[,"beta_EH"]*0.8
+    params2[,"beta_HE"] <- params[,"beta_HE"]*0.8
+    params2[,"beta_AE"] <- params[,"beta_AE"]*0.8
+    params2[,"beta_EA"] <- params[,"beta_EA"]*0.8
+  } else if (intervention==14){ #SENEGAL NAP 
+    params2 <- params
+    params2[,"LAMBDA_H"] <- params[,"LAMBDA_H"]*0.95
+    params2[,"LAMBDA_A"] <- params[,"LAMBDA_A"]*0.8
+    params2[,"beta_HH"] <- params[,"beta_HH"]*0.9
+    params2[,"beta_HA"] <- params[,"beta_HA"]*0.9
+    params2[,"beta_AA"] <- params[,"beta_AA"]*0.9
+    params2[,"beta_AH"] <- params[,"beta_AH"]*0.9
+    params2[,"beta_EE"] <- params[,"beta_EE"]*0.9
+    params2[,"beta_EH"] <- params[,"beta_EH"]*0.9
+    params2[,"beta_HE"] <- params[,"beta_HE"]*0.9
+    params2[,"beta_AE"] <- params[,"beta_AE"]*0.9
+    params2[,"beta_EA"] <- params[,"beta_EA"]*0.9
+  } else if (intervention==15){ # FARM 
+    params2 <- params
+    params2[,"LAMBDA_A"] <- params[,"LAMBDA_A"]*0.5
+    params2[,"beta_HA"] <- params[,"beta_HA"]*0.5
+    params2[,"beta_AH"] <- params[,"beta_AH"]*0.5
+  }else if (intervention==16){ # HUMAN
+    params2 <- params
+    params2[,"LAMBDA_H"] <- params[,"LAMBDA_H"]*0.5
+    params2[,"beta_HH"] <- params[,"beta_HH"]*0.5
+  }else if (intervention==17){ # ENV
+    params2 <- params
+    params2[,"LAMBDA_E"] <- params[,"LAMBDA_E"]*0.5
+    params2[,"beta_EE"] <- params[,"beta_EE"]*0.5
+    params2[,"beta_EH"] <- params[,"beta_EH"]*0.5
+    params2[,"beta_HE"] <- params[,"beta_HE"]*0.5
+    params2[,"beta_AE"] <- params[,"beta_AE"]*0.5
+    params2[,"beta_EA"] <- params[,"beta_EA"]*0.5
+  }else if (intervention==18){ # HUMAN + ANIMAL CONTACT
+    params2 <- params
+    params2[,"beta_HA"] <- params[,"beta_HA"]*0.5
+    params2[,"beta_AH"] <- params[,"beta_AH"]*0.5
+  }else if (intervention==19){ # TRANSMISSION
+    params2 <- params
+    params2[,"beta_HH"] <- params[,"beta_HH"]*0.5
+    params2[,"beta_HA"] <- params[,"beta_HA"]*0.5
+    params2[,"beta_AA"] <- params[,"beta_AA"]*0.5
+    params2[,"beta_AH"] <- params[,"beta_AH"]*0.5
+    params2[,"beta_EE"] <- params[,"beta_EE"]*0.5
+    params2[,"beta_EH"] <- params[,"beta_EH"]*0.5
+    params2[,"beta_HE"] <- params[,"beta_HE"]*0.5
+    params2[,"beta_AE"] <- params[,"beta_AE"]*0.5
+    params2[,"beta_EA"] <- params[,"beta_EA"]*0.5
+  }else if (intervention==20){ # USAGE
+    params2 <- params
+    params2[,"LAMBDA_H"] <- params[,"LAMBDA_H"]*0.5
+    params2[,"LAMBDA_A"] <- params[,"LAMBDA_A"]*0.5
+    params2[,"LAMBDA_E"] <- params[,"LAMBDA_E"]*0.5
+>>>>>>> b644649050f2a34241d46fa6d31f48ffea7324c5
   } else {params2 <- 0}
   
   

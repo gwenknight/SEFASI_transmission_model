@@ -11,4 +11,10 @@ To explore the output run
 (2) "explore_model_output.R" 
 - this will compare the FULLDATA outputs for each country to the data and generate the likelihood and the top 100 best fits and plot these
 
-To explore the interventions run 
+To explore this model output and select the parameter sets that generate runs closest to the data 
+use the code in 
+"explore_model_output.R"
+
+To generate the intervention impact use 
+"run_interventions.R"
+
