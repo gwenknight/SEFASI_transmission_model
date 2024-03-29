@@ -195,3 +195,84 @@ ggplot(data=usage.table[usage.table$country=="denmark" & usage.table$subsource %
  geom_line(data=as.data.frame(H_data),aes(time,H),col="darkblue")+geom_line(data=as.data.frame(A_data),aes(time,A),col="darkgreen")#+
 ggsave(paste("plots/time_varying_usage_denmark", ".png",sep=""), width = 150, height = 100, units='mm',dpi=1000)
 
+
+
+################################################### SENEGAL
+### Raw data
+sen_use <- usage.table %>% filter(country == "senegal")
+sen_use$kg <- as.numeric(sen_use$kg)
+
+# initial values for abx use
+initial_sen_H = as.numeric(sen_use %>% filter(source == "humans", year == 2017) %>% select("kg")) 
+initial_sen_A = 1 # set at 1 as.numeric(sen_use %>% filter(source == "animals", year == 2015) %>% select("kg"))
+H_A_ratio_sen <-initial_sen_H/initial_sen_A
+
+
+# Ratio of use in humans to animals at end point
+ratio_sen_2019_H <-  as.numeric(sen_use %>% filter(source == "humans", year == 2019) %>% select("kg"))/initial_sen_H
+ratio_sen_2017_A <-  1 # Everything zero... as.numeric(sen_use %>% filter(source == "animals", year == 2017) %>% select("kg"))/initial_sen_A
+
+
+# Initial value
+fittedvalue<-1
+LAMBDA_H_temp_input <- fittedvalue
+
+# Function to calculate over time abx use ratios (LAMBDA): Human = 1, animal = relative to this
+LAMBDA_time <- function(max_time){
+  # empty initial vector
+  temp_time_H <- rep(NA,max_time)
+  temp_time_A <- rep(NA,max_time)
+  for (i in c(1:max_time) ){
+    if (i <= time1_sen)  {
+      LAMBDA_H_temp <- LAMBDA_H_temp_input
+      LAMBDA_A_temp <- LAMBDA_H_temp_input/H_A_ratio_sen 
+    } else if ((i >time1_sen) & (i < time2_sen))  {  
+      LAMBDA_H_temp <- LAMBDA_H_temp_input + ((i-time1_sen)*(((LAMBDA_H_temp_input*ratio_sen_2017_H) - LAMBDA_H_temp_input)/(time2_sen-time1_sen)))
+      LAMBDA_A_temp <- LAMBDA_H_temp_input/H_A_ratio_sen + ((i-time1_sen)*(((LAMBDA_H_temp_input/H_A_ratio_sen)*ratio_sen_2017_A - LAMBDA_H_temp_input/H_A_ratio_sen )/(time2_sen-time1_sen)))
+    } else if (i>=time2_sen) { 
+      LAMBDA_H_temp <- LAMBDA_H_temp_input*ratio_sen_2017_H
+      LAMBDA_A_temp <- (LAMBDA_H_temp_input/H_A_ratio_sen)*ratio_sen_2017_A
+    }
+    # Store the temporary one in the output vector
+    temp_time_H[i] <- LAMBDA_H_temp
+    temp_time_A[i] <- LAMBDA_A_temp
+  }
+  
+  return(list(hh = temp_time_H,aa = temp_time_A))
+}
+# Calculate human levels relative to 1 initially 
+outlevel = LAMBDA_time(22)
+H_data<- data.frame(outlevel$hh)
+A_data <- data.frame(outlevel$aa) # relative to human levels #vas.data.frame(t(
+colnames(H_data) <- "H"
+colnames(A_data) <- "A"
+H_data$time <- 2000+1:22
+A_data$time <- 2000+1:22
+
+# Multiply by initial values to get back to antibiotic usage in kg
+H_data$H <- as.numeric(initial_sen_H)*H_data$H 
+A_data$A <- as.numeric(initial_sen_H)*A_data$A
+ggplot(as.data.frame(H_data))+geom_point(data=as.data.frame(H_data),aes(time,H),col="lightblue")+geom_point(data=as.data.frame(A_data),aes(time,A))+
+  theme(panel.border = element_rect(linetype = "solid", fill = NA))#+
+
+# Generate plot showing input and overlay data 
+ggplot(data=usage.table[usage.table$country=="senegal" ,], aes(x=time))+
+  geom_point(data=usage.table[usage.table$country=="senegal" ,],aes(x=year,y=kg,colour=source),shape="square",size=4,alpha=0.8) +
+  scale_color_brewer(palette = "Set1")+
+  ylab(label="Usage in KG")+
+  xlab(label="Year")+ 
+  theme_classic() +
+  theme(panel.border = element_rect(linetype = "solid", fill = NA)) +
+  theme(text = element_text(size=15,colour="black")) + # scale_color_brewer(palette="Set1")+ 
+  theme(axis.text.x = element_text(color="black", 
+                                   size=15),
+        axis.text.y = element_text(color="black", 
+                                   size=15)) + theme(legend.title = element_blank()) +
+  scale_color_manual(name="",values = c("humans" = "#3B9AB2","animals" = "darkgreen", "environment" ="#EBCC2A" ))+
+  theme(legend.position = 'right')+guides(colour=guide_legend(ncol=1))+
+  geom_point(data=as.data.frame(H_data),aes(time,H),col="darkblue")+geom_point(data=as.data.frame(A_data),aes(time,A),col="darkgreen")+
+  scale_y_continuous(limits = c(0, 1.01 * max(sen_use$kg)))
+# geom_line(data=as.data.frame(H_data),aes(time,H),col="darkblue")+geom_line(data=as.data.frame(A_data),aes(time,A),col="darkgreen")#
+#scale_x_continuous(expand = c(2000, 2020),limits=c(2000,2020))
+ggsave(paste("plots/time_varying_usage_senegal", ".png",sep=""), width = 150, height = 100, units='mm',dpi=1000)
+
