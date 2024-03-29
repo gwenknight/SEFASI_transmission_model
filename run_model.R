@@ -30,7 +30,7 @@ p1 <- p1[p1$beta_EA >= p1$beta_EH, ] # removes a lot
 p1 <- p1[sample(x = dim(p1)[1], size = 100000),]
 dim(p1) # 100,000 parameter sets
 
-write.csv(p1,"output/parameter_set_100000.csv")
+# ONLY FIRST TIME write.csv(p1,"output/parameter_set_100000.csv")
 
 ##### Generate time varying antibiotic usage curves
 # will plot england and denmark assumptions for usage & generates time varying LAMBDA
