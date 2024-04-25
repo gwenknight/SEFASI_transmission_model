@@ -68,9 +68,9 @@ AMRmodel_DENMARK <- function(time,state,parameters){ #using package deSolve
     LAMBDA_A <- LAMBDA_A_temp
     
     # Equations governing Human - Animal - Environment interaction 
-    dH <- gamma*LAMBDA_H*(1-H) + LAMBDA_H*beta_HH*H*(1-H) + LAMBDA_H*beta_AH*(1-H)*A + LAMBDA_H*beta_EH*(1-H)*E - mu_H*H
-    dA <-  gamma*LAMBDA_A*(1-A) + LAMBDA_A*beta_AA*A*(1-A) + LAMBDA_A*beta_HA*(1-A)*H + LAMBDA_A*beta_EA*(1-A)*E - mu_A*A
-    dE <-  LAMBDA_E*beta_EE*E*(1-E) + LAMBDA_E*beta_HE*(1-E)*H + LAMBDA_E*beta_AE*(1-E)*A - mu_E*E
+    dH <- (1 + LAMBDA_H)*beta_HH*H*(1-H) + (1 + LAMBDA_H)*beta_AH*(1-H)*A + (1 + LAMBDA_H)*beta_EH*(1-H)*E - mu_H*H
+    dA <- (1 + LAMBDA_A)*beta_AA*A*(1-A) + (1 + LAMBDA_A)*beta_HA*(1-A)*H + (1 + LAMBDA_A)*beta_EA*(1-A)*E - mu_A*A
+    dE <-  (1 + LAMBDA_E)*beta_EE*E*(1-E) + (1 + LAMBDA_E)*beta_HE*(1-E)*H + (1 + LAMBDA_E)*beta_AE*(1-E)*A - mu_E*E
     # print(c(time,LAMBDA_H,LAMBDA_A,LAMBDA_E))
     return(  list(c(dH,dA,dE)))
 })}
@@ -79,10 +79,15 @@ AMRmodel_DENMARK <- function(time,state,parameters){ #using package deSolve
 AMRmodel_SENEGAL <- function(time,state,parameters){ #using package deSolve
   with(as.list(c(state,parameters)),{
     
+    # Equations governing Human - Animal - Environment interaction: original
+    #dH <- gamma*LAMBDA_H*(1-H) + LAMBDA_H*beta_HH*H*(1-H) + LAMBDA_H*beta_AH*(1-H)*A + LAMBDA_H*beta_EH*(1-H)*E - mu_H*H
+    #dA <-  gamma*LAMBDA_A*(1-A) + LAMBDA_A*beta_AA*A*(1-A) + LAMBDA_A*beta_HA*(1-A)*H + LAMBDA_A*beta_EA*(1-A)*E - mu_A*A
+    #dE <-  LAMBDA_E*beta_EE*E*(1-E) + LAMBDA_E*beta_HE*(1-E)*H + LAMBDA_E*beta_AE*(1-E)*A - mu_E*E
+    
     # Equations governing Human - Animal - Environment interaction 
-    dH <- gamma*LAMBDA_H*(1-H) + LAMBDA_H*beta_HH*H*(1-H) + LAMBDA_H*beta_AH*(1-H)*A + LAMBDA_H*beta_EH*(1-H)*E - mu_H*H
-    dA <-  gamma*LAMBDA_A*(1-A) + LAMBDA_A*beta_AA*A*(1-A) + LAMBDA_A*beta_HA*(1-A)*H + LAMBDA_A*beta_EA*(1-A)*E - mu_A*A
-    dE <-  LAMBDA_E*beta_EE*E*(1-E) + LAMBDA_E*beta_HE*(1-E)*H + LAMBDA_E*beta_AE*(1-E)*A - mu_E*E
+    dH <- (1 + LAMBDA_H)*beta_HH*H*(1-H) + (1 + LAMBDA_H)*beta_AH*(1-H)*A + (1 + LAMBDA_H)*beta_EH*(1-H)*E - mu_H*H
+    dA <- (1 + LAMBDA_A)*beta_AA*A*(1-A) + (1 + LAMBDA_A)*beta_HA*(1-A)*H + (1 + LAMBDA_A)*beta_EA*(1-A)*E - mu_A*A
+    dE <-  (1 + LAMBDA_E)*beta_EE*E*(1-E) + (1 + LAMBDA_E)*beta_HE*(1-E)*H + (1 + LAMBDA_E)*beta_AE*(1-E)*A - mu_E*E
     # print(c(time,LAMBDA_H,LAMBDA_A,LAMBDA_E))
     return(  list(c(dH,dA,dE)))
   })}
@@ -100,9 +105,9 @@ AMRmodel_ENGLAND <- function(time,state,parameters){ #using package deSolve
         LAMBDA_A <- (LAMBDA_H/H_A_ratio_eng)*ratio_eng_2017_A}
     
     # Equations governing Human - Animal - Environment interaction 
-    dH <- gamma*LAMBDA_H*(1-H) + LAMBDA_H*beta_HH*H*(1-H) + LAMBDA_H*beta_AH*(1-H)*A + LAMBDA_H*beta_EH*(1-H)*E - mu_H*H
-    dA <-  gamma*LAMBDA_A*(1-A) + LAMBDA_A*beta_AA*A*(1-A) + LAMBDA_A*beta_HA*(1-A)*H + LAMBDA_A*beta_EA*(1-A)*E - mu_A*A
-    dE <-  LAMBDA_E*beta_EE*E*(1-E) + LAMBDA_E*beta_HE*(1-E)*H + LAMBDA_E*beta_AE*(1-E)*A - mu_E*E
+    dH <- (1 + LAMBDA_H)*beta_HH*H*(1-H) + (1 + LAMBDA_H)*beta_AH*(1-H)*A + (1 + LAMBDA_H)*beta_EH*(1-H)*E - mu_H*H
+    dA <- (1 + LAMBDA_A)*beta_AA*A*(1-A) + (1 + LAMBDA_A)*beta_HA*(1-A)*H + (1 + LAMBDA_A)*beta_EA*(1-A)*E - mu_A*A
+    dE <-  (1 + LAMBDA_E)*beta_EE*E*(1-E) + (1 + LAMBDA_E)*beta_HE*(1-E)*H + (1 + LAMBDA_E)*beta_AE*(1-E)*A - mu_E*E
     # print(c(time,LAMBDA_H,LAMBDA_A,LAMBDA_E))
     return(  list(c(dH,dA,dE)))
 })}
