@@ -1,6 +1,113 @@
 ################################  AMRmodel #####################################
 ### Core AMR model functions of the three environments for Denmark, England and Senegal
 
+### AMR Model
+# parameters <- list(LAMBDA_H = 0.1,
+#                    LAMBDA_A = 0.1,
+#                    LAMBDA_E = 0.1,
+#                    beta_HH = 0.1,
+#                    beta_HA = 0.1,
+#                    beta_HE = 0.1,
+#                    beta_AA = 0.1,
+#                    beta_AH = 0.1,
+#                    beta_AE = 0.1,
+#                    beta_EE = 0.1,
+#                    beta_EA = 0.1,
+#                    beta_EH = 0.1,
+#                    mu_H = 0.1,
+#                    mu_A = 0.1,
+#                    mu_E = 0.1,
+#                    date_3gc = 1990) # after 1960
+
+AMRmodel <- function(times, init, u, parameters_in){
+  # time parameters: years
+  # init = initial conditions 
+  # u = usage per year 
+  # parameters = needed parameters
+  parameters <- list(LAMBDA_H = parameters_in[1],
+                     LAMBDA_A = parameters_in[2],
+                     LAMBDA_E = parameters_in[3],
+                     beta_HH = parameters_in[4],
+                     beta_AA = parameters_in[5],
+                     beta_EE = parameters_in[6],
+                     beta_AH = parameters_in[7],
+                     beta_HA = parameters_in[8],
+                     beta_EH = parameters_in[9],
+                     beta_EA = parameters_in[10],
+                     beta_AE = parameters_in[11],
+                     beta_HE = parameters_in[12],
+                     mu_H = parameters_in[13],
+                     mu_A = parameters_in[14],
+                     mu_E = parameters_in[15],
+                     paraset = parameters_in[16])
+  
+  ## initial vector
+  pops <- as.data.frame(matrix(0,1+length(times),length(init))) 
+  pops <- cbind(c(0,times), pops,parameters_in[16])
+  colnames(pops) <- c("time","H","A","E")
+  pops[1,] <- c(0,init,parameters_in[16]) # initial conditions
+  max_pop <- 100000
+  
+  # usage in each environment
+  u_humans <- as.vector(unlist(u %>% filter(source == "humans") %>% select(normalise_kg)))
+  u_animals <- as.vector(unlist(u %>% filter(source == "animals") %>% select(normalise_kg)))
+  u_env <- (u_animals + u_humans)/2 # take mean for environment
+  
+  # Simulate dynamics
+  for(i in times){
+    # At each time step = previous value + min of the proportion left to being all resistant
+    pops[i+1, "H"] <- pops[i, "H"] + min(max_pop - pops[i, "H"], (1 + parameters$LAMBDA_H*u_humans[i])*parameters$beta_HH*pops[i, "H"]*(max_pop - pops[i, "H"]) + (1 + parameters$LAMBDA_H*u_humans[i])*parameters$beta_AH*(max_pop - pops[i, "H"])*pops[i, "A"] + (1 + parameters$LAMBDA_H*u_humans[i])*parameters$beta_EH*(max_pop - pops[i, "H"])*pops[i, "E"] - parameters$mu_H*pops[i, "H"])
+    pops[i+1, "A"] <- pops[i, "A"] + min(max_pop - pops[i, "A"], (1 + parameters$LAMBDA_A*u_animals[i])*parameters$beta_AA*pops[i, "A"]*(max_pop - pops[i, "A"]) + (1 + parameters$LAMBDA_A*u_animals[i])*parameters$beta_HA*(max_pop - pops[i, "A"])*pops[i, "H"] + (1 + parameters$LAMBDA_A*u_animals[i])*parameters$beta_EA*(max_pop - pops[i, "A"])*pops[i, "E"] - parameters$mu_A*pops[i, "A"])
+    pops[i+1, "E"] <- pops[i, "E"] + min(max_pop - pops[i, "E"], (1 + parameters$LAMBDA_E*u_env[i])*parameters$beta_EE*pops[i, "E"]*(max_pop - pops[i, "E"]) + (1 + parameters$LAMBDA_E*u_env[i])*parameters$beta_HE*(max_pop - pops[i, "E"])*pops[i, "H"] + (1 + parameters$LAMBDA_E*u_env[i])*parameters$beta_AE*(max_pop - pops[i, "E"])*pops[i, "A"] - parameters$mu_E*pops[i, "E"])
+  }
+  
+  # Divide by max_pop to give proportions 
+  pops[,c("H","A","E")] <- pops[,c("H","A","E")]/max_pop
+  
+  return(pops)
+  
+}
+
+################################  Sampling function #####################################
+### Function to generate parameter samples limiting them to the pre-specified ranges 
+### INPUTS
+## aaa = how many samples to generate 
+### OUTPUTS
+## paramsMat_SIR = parameters with key relationship limits
+
+sampling <- function(aaa){
+  Samples <- randomLHS(aaa, 15) # Generate aaa number of the needed 16 parameters between 0 and 1
+  
+  ### Exposure to antibiotics
+  Samples[,1] <- 0 + (1-0)*Samples[,1]#LAMBDA_H #vary to max 
+  Samples[,2] <- 0 + (1-0)*Samples[,2]   #LAMBDA_A #vary to max
+  Samples[,3] <- 0 + (1-0)*Samples[,3]#LAMBDA_E no information yet 
+  
+  ### Transmission within settings
+  # Max 0.1% chance per month of contact
+  Samples[,4] <- 0 + (0.00001-0)*Samples[,4]  #beta_HH
+  Samples[,5] <- 0 + (0.00001-0)*Samples[,5] #beta_AA
+  Samples[,6] <-  0 + (0.00001-0)*Samples[,6] #beta_EE
+  
+  ### Transmission between settings
+  Samples[,7]  <- 0 + (Samples[,4]-0)*Samples[,7] #beta_AH < beta_HH
+  Samples[,8]  <- 0 + (Samples[,5]-0)*Samples[,8] #beta_HA < beta_AA
+  Samples[,9]  <- 0 + (Samples[,4]-0)*Samples[,9] ##beta_EH < beta_HH
+  Samples[,10] <- 0 + (Samples[,5]-0)*Samples[,10] #beta_EA < beta_AA
+  
+  Samples[,11] <- 0 + (0.00001-0)*Samples[,11] #beta_AE 
+  Samples[,12] <- 0 + (0.00001-0)*Samples[,12]  #beta_HE
+  
+  ### Clearance of AMR 
+  ##Carriage of ESBL or CRE at 12 months in community 25.4% patients 35.2%
+  # Assume can clear in month on average
+  Samples[,13] <- 0 + (1-0)*Samples[,13]  #mu_H 
+  Samples[,14] <- 0 + (1-0)*Samples[,14]   #mu_A
+  Samples[,15] <- 0 + (1-0)*Samples[,15]   #mu_E
+  
+  return(Samples)
+}
+
 ###### Model of AMR in Denmark with time varying antibiotic usage
 AMRmodel_DENMARK <- function(time,state,parameters){ #using package deSolve
   with(as.list(c(state,parameters)),{
@@ -41,155 +148,7 @@ AMRmodel_DENMARK <- function(time,state,parameters){ #using package deSolve
     return(  list(c(dH,dA,dE)))
   })}
 
-###### Model of AMR in Senegal with no time varying antibiotic usage due to a lack of data
-AMRmodel_SENEGAL <- function(time,state,parameters){ #using package deSolve
-  with(as.list(c(state,parameters)),{
-    
-    # Equations governing Human - Animal - Environment interaction 
-    dH <- (1 + LAMBDA_H)*beta_HH*H*(1-H) + (1 + LAMBDA_H)*beta_AH*(1-H)*A + (1 + LAMBDA_H)*beta_EH*(1-H)*E - mu_H*H
-    dA <- (1 + LAMBDA_A)*beta_AA*A*(1-A) + (1 + LAMBDA_A)*beta_HA*(1-A)*H + (1 + LAMBDA_A)*beta_EA*(1-A)*E - mu_A*A
-    dE <-  (1 + LAMBDA_E)*beta_EE*E*(1-E) + (1 + LAMBDA_E)*beta_HE*(1-E)*H + (1 + LAMBDA_E)*beta_AE*(1-E)*A - mu_E*E
-    # print(c(time,LAMBDA_H,LAMBDA_A,LAMBDA_E))
-    return(  list(c(dH,dA,dE)))
-  })}
-
-###### Model of AMR in England with time varying antibiotic usage
-AMRmodel_ENGLAND <- function(time,state,parameters){ #using package deSolve
-  with(as.list(c(state,parameters)),{ #
-    
-    # Time varying antibiotic usage for England 
-    if (time <= time1_eng)  {LAMBDA_H <- LAMBDA_H
-    LAMBDA_A <- LAMBDA_H/H_A_ratio_eng } else if ((time >time1_eng) & (time < time2_eng))  {  
-      LAMBDA_H <- LAMBDA_H + ((time - time1_eng)*(((LAMBDA_H*ratio_eng_2017_H) - LAMBDA_H)/(time2_eng-time1_eng)))
-      LAMBDA_A <- LAMBDA_H/H_A_ratio_eng + ((time - time1_eng)*(((LAMBDA_H/H_A_ratio_eng)*ratio_eng_2017_A - LAMBDA_H/H_A_ratio_eng )/(time2_eng-time1_eng)))} else if (time>=time2_eng)   {
-        LAMBDA_H <- LAMBDA_H*ratio_eng_2017_H
-        LAMBDA_A <- (LAMBDA_H/H_A_ratio_eng)*ratio_eng_2017_A}
-    
-    # Equations governing Human - Animal - Environment interaction 
-    dH <- (1 + LAMBDA_H)*beta_HH*H*(1-H) + (1 + LAMBDA_H)*beta_AH*(1-H)*A + (1 + LAMBDA_H)*beta_EH*(1-H)*E - mu_H*H
-    dA <- (1 + LAMBDA_A)*beta_AA*A*(1-A) + (1 + LAMBDA_A)*beta_HA*(1-A)*H + (1 + LAMBDA_A)*beta_EA*(1-A)*E - mu_A*A
-    dE <-  (1 + LAMBDA_E)*beta_EE*E*(1-E) + (1 + LAMBDA_E)*beta_HE*(1-E)*H + (1 + LAMBDA_E)*beta_AE*(1-E)*A - mu_E*E
-    # print(c(time,LAMBDA_H,LAMBDA_A,LAMBDA_E))
-    return(  list(c(dH,dA,dE)))
-  })}
-
-
-################################  Simple simulator of epidemiology  #####################################
-############# epid function = wrapper for ode and country models ##########################
-##### INPUTS
-### Lambda_H : episilon = parameters for code AMR model 
-### returnout = if 1 then gives output
-### input_country = which of the 3 SEFASI countries to input
-
-##### OUTPUTS
-### model simulation output for that country 
-
-epid <- function(params, returnout, input_country){
-  # params <- c(LAMBDA_H=LAMBDA_H,LAMBDA_A=LAMBDA_A,LAMBDA_E=LAMBDA_E,
-  #             beta_HH=beta_HH,  beta_AA=beta_AA,  beta_HE=beta_HE,  beta_AH=beta_AH,
-  #             beta_EH=beta_EH,  beta_HA=beta_HA,  beta_EA=beta_EA,  beta_AE=beta_AE, 
-  #             beta_EE=beta_EE,  mu_H = mu_H, mu_A = mu_A, mu_E = mu_E,gamma=gamma,epsilon=epsilon)
-  # 
-  
-  #run the core AMR model using desolve
-  if (input_country=="denmark"){
-    out <- as.data.frame(ode(y=state,time=vectTime,func=AMRmodel_DENMARK,parms=params))
-  } else if  (input_country=="england"){
-    out <- as.data.frame(ode(y=state,time=vectTime,func=AMRmodel_ENGLAND,parms=params))
-  } else if (input_country == "senegal"){
-    out <- as.data.frame(ode(y=state,time=vectTime,func=AMRmodel_SENEGAL,parms=params))
-  }
-  
-  out$time = out$time+epid.start #rescale the time so that it runs from 2000 onwards 
-  
-  # Add in year
-  for(i in 1:22){
-    assign( paste("model",1999+i,".H",sep=""),
-            out$H[out$time==1999+i] )
-    
-    assign( paste("model",1999+i,".A",sep=""),
-            out$A[out$time==1999+i] )
-    
-    assign( paste("model",1999+i,".E",sep=""),
-            out$E[out$time==1999+i] )
-  }
-  
-  
-  ## if returnout is input as 1 then return out (all data)
-  if (returnout ==1){
-    return(out)} else{
-      
-      return(c(model2000.H=model2000.H,
-               model2001.H=model2001.H,
-               model2002.H=model2002.H,
-               model2003.H=model2003.H,
-               model2004.H=model2004.H,
-               model2005.H=model2005.H,
-               model2006.H=model2006.H,
-               model2007.H=model2007.H,
-               model2008.H=model2008.H,
-               model2009.H=model2009.H,
-               model2010.H=model2010.H,
-               model2011.H=model2011.H,
-               model2012.H=model2012.H,
-               model2013.H=model2013.H,
-               model2014.H=model2014.H,
-               model2015.H=model2015.H,
-               model2016.H=model2016.H,
-               model2017.H=model2017.H,
-               model2018.H=model2018.H,
-               model2019.H=model2019.H,
-               model2020.H=model2020.H,
-               model2021.H=model2021.H,
-               model2000.A=model2000.A,
-               model2001.A=model2001.A,
-               model2002.A=model2002.A,
-               model2003.A=model2003.A,
-               model2004.A=model2004.A,
-               model2005.A=model2005.A,
-               model2006.A=model2006.A,
-               model2007.A=model2007.A,
-               model2008.A=model2008.A,
-               model2009.A=model2009.A,
-               model2010.A=model2010.A,
-               model2011.A=model2011.A,
-               model2012.A=model2012.A,
-               model2013.A=model2013.A,
-               model2014.A=model2014.A,
-               model2015.A=model2015.A,
-               model2016.A=model2016.A,
-               model2017.A=model2017.A,
-               model2018.A=model2018.A,
-               model2019.A=model2019.A,
-               model2020.A=model2020.A,
-               model2021.A=model2021.A,
-               model2000.E=model2000.E,
-               model2001.E=model2001.E,
-               model2002.E=model2002.E,
-               model2003.E=model2003.E,
-               model2004.E=model2004.E,
-               model2005.E=model2005.E,
-               model2006.E=model2006.E,
-               model2007.E=model2007.E,
-               model2008.E=model2008.E,
-               model2009.E=model2009.E,
-               model2010.E=model2010.E,
-               model2011.E=model2011.E,
-               model2012.E=model2012.E,
-               model2013.E=model2013.E,
-               model2014.E=model2014.E,
-               model2015.E=model2015.E,
-               model2016.E=model2016.E,
-               model2017.E=model2017.E,
-               model2018.E=model2018.E,
-               model2019.E=model2019.E,
-               model2020.E=model2020.E,
-               model2021.E=model2021.E
-      ))}
-}
-
-
-### Least squares
+### Least squares function 
 LS_simple  <- function(DATA_INPUT, input_country, res.table){
   
   # Extract the resistance prevalence data for this country 
@@ -212,7 +171,8 @@ LS_simple  <- function(DATA_INPUT, input_country, res.table){
     #LL_H_country[i] = res_H_country$percent[i]*log(eval(parse(text=paste("DATA_INPUT$model",times_H_country[i],".H",sep="")))) + 
     #  (1- res_H_country$percent[i])*log(1-eval(parse(text=paste("DATA_INPUT$model",times_H_country[i],".H",sep=""))))   
     # Least squares
-    LL_H_country[i] = (res_H_country$percent[i]/100 - eval(parse(text=paste("DATA_INPUT$model",times_H_country[i],".H",sep=""))))^2
+    #LL_H_country[i] = (res_H_country$percent[i]/100 - eval(parse(text=paste("DATA_INPUT$model",times_H_country[i],".H",sep=""))))^2
+    LL_H_country[i] = (res_H_country$percent[i]/100 - DATA_INPUT %>% filter(year == as.numeric(res_H_country[i,"time"]), name == "H") %>% select(mean_vl))^2 # eval(parse(text=paste("DATA_INPUT$model",times_H_country[i],".H",sep=""))))^2
     
   }
   
@@ -220,19 +180,23 @@ LS_simple  <- function(DATA_INPUT, input_country, res.table){
     #LL_A_country[i] = res_A_country$percent[i]*log(eval(parse(text=paste("DATA_INPUT$model",times_A_country[i],".A",sep="")))) + (1- res_A_country$percent[i])*log(1-eval(parse(text=paste("DATA_INPUT$model",times_A_country[i],".A",sep=""))))   
     
     # Least squares
-    LL_A_country[i] = (res_A_country$percent[i]/100 - eval(parse(text=paste("DATA_INPUT$model",times_A_country[i],".A",sep=""))))^2
+    #LL_A_country[i] = (res_A_country$percent[i]/100 - eval(parse(text=paste("DATA_INPUT$model",times_A_country[i],".A",sep=""))))^2
+    LL_A_country[i] = (res_A_country$percent[i]/100 - DATA_INPUT %>% filter(year == as.numeric(res_A_country[i,"time"]), name == "A") %>% select(mean_vl))^2 
   }
   
   for (i in 1:length(LL_E_country)) {
     #LL_E_country[i] = res_E_country$percent[i]*log(eval(parse(text=paste("DATA_INPUT$model",times_E_country[i],".E",sep="")))) + (1- res_E_country$percent[i])*log(1-eval(parse(text=paste("DATA_INPUT$model",times_E_country[i],".E",sep=""))))   
     # Least squares
-    LL_E_country[i] = (res_E_country$percent[i]/100 - eval(parse(text=paste("DATA_INPUT$model",times_E_country[i],".E",sep=""))))^2
+    #LL_E_country[i] = (res_E_country$percent[i]/100 - eval(parse(text=paste("DATA_INPUT$model",times_E_country[i],".E",sep=""))))^2
+    LL_E_country[i] = (res_E_country$percent[i]/100 - DATA_INPUT %>% filter(year == as.numeric(res_E_country[i,"time"]), name == "E") %>% select(mean_vl))^2 
   }
   
   
   #MLE<- sum(LL_H_country)/length(LL_H_country) + sum(LL_A_country)/length(LL_A_country) +  sum(LL_E_country)/length(LL_E_country)
-  LS <- sum(LL_H_country) + sum(LL_A_country) +  sum(LL_E_country)
+  LS <- sum(unlist(LL_H_country)) + sum(unlist(LL_A_country)) +  sum(unlist(LL_E_country))
   #print(MLE)
   
   return(LS)
 }
+
+
