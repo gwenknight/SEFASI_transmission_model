@@ -74,7 +74,6 @@ p1 <- read.csv("output/parameter_set_100000.csv")[,-1]
 nc = detectCores()
 source("model_functions/epid.R")
 
-
 ### SENEGAL 
 # Make cluster
 cl = makeCluster(nc-3)
