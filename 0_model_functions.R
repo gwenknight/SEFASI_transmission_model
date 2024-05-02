@@ -44,14 +44,14 @@ AMRmodel <- function(times, init, u, parameters_in){
   ## initial vector
   pops <- as.data.frame(matrix(0,1+length(times),length(init))) 
   pops <- cbind(c(0,times), pops,parameters_in[16])
-  colnames(pops) <- c("time","H","A","E")
+  colnames(pops) <- c("time","H","A","E","para")
   pops[1,] <- c(0,init,parameters_in[16]) # initial conditions
   max_pop <- 100000
   
   # usage in each environment
   u_humans <- as.vector(unlist(u %>% filter(source == "humans") %>% select(normalise_kg)))
   u_animals <- as.vector(unlist(u %>% filter(source == "animals") %>% select(normalise_kg)))
-  u_env <- (u_animals + u_humans)/2 # take mean for environment
+  u_env <- as.vector(unlist(u %>% filter(source == "environ") %>% select(normalise_kg)))
   
   # Simulate dynamics
   for(i in times){
@@ -79,9 +79,9 @@ sampling <- function(aaa){
   Samples <- randomLHS(aaa, 15) # Generate aaa number of the needed 16 parameters between 0 and 1
   
   ### Exposure to antibiotics
-  Samples[,1] <- 0 + (1-0)*Samples[,1]#LAMBDA_H #vary to max 
-  Samples[,2] <- 0 + (1-0)*Samples[,2]   #LAMBDA_A #vary to max
-  Samples[,3] <- 0 + (1-0)*Samples[,3]#LAMBDA_E no information yet 
+  Samples[,1] <- 0 + (1-0)*Samples[,1]  #LAMBDA_H #vary to max 
+  Samples[,2] <- 0 + (1-0)*Samples[,2]  #LAMBDA_A #vary to max
+  Samples[,3] <- 0 + (1-0)*Samples[,3]  #LAMBDA_E no information yet 
   
   ### Transmission within settings
   # Max 0.1% chance per month of contact
@@ -90,10 +90,10 @@ sampling <- function(aaa){
   Samples[,6] <-  0 + (0.00001-0)*Samples[,6] #beta_EE
   
   ### Transmission between settings
-  Samples[,7]  <- 0 + (Samples[,4]-0)*Samples[,7] #beta_AH < beta_HH
-  Samples[,8]  <- 0 + (Samples[,5]-0)*Samples[,8] #beta_HA < beta_AA
-  Samples[,9]  <- 0 + (Samples[,4]-0)*Samples[,9] ##beta_EH < beta_HH
-  Samples[,10] <- 0 + (Samples[,5]-0)*Samples[,10] #beta_EA < beta_AA
+  Samples[,7]  <- 0 + (0.00001-0)*Samples[,7] # removed this condition: beta_AH < beta_HH
+  Samples[,8]  <- 0 + (0.00001-0)*Samples[,8] #removed this condition: beta_HA < beta_AA
+  Samples[,9]  <- 0 + (0.00001-0)*Samples[,9] ##removed this condition: beta_EH < beta_HH
+  Samples[,10] <- 0 + (0.00001-0)*Samples[,10] #removed this condition: beta_EA < beta_AA
   
   Samples[,11] <- 0 + (0.00001-0)*Samples[,11] #beta_AE 
   Samples[,12] <- 0 + (0.00001-0)*Samples[,12]  #beta_HE
@@ -199,4 +199,150 @@ LS_simple  <- function(DATA_INPUT, input_country, res.table){
   return(LS)
 }
 
-
+# ############# AMRmodel with interventions
+# AMRmodel_interv <- function(times, init, u, parameters_in){
+#   # time parameters: years
+#   # init = initial conditions 
+#   # u = usage per year 
+#   # parameters = needed parameters
+#   
+#   # Run the model on these parameters 
+#   A <- AMRmodel(times, init, u, parameters_in)
+#   
+#   # Initial conditions now 
+#   init_new <- tail(A,1)
+#   
+#   for(intervention in 1:20){ # 20 interventions
+#     
+#     names(parameters_in) <- c("LAMBDA_H","LAMBDA_A","LAMBDA_E","beta_HH","beta_AA","beta_EE","beta_AH",
+#                               "beta_HA","beta_EH","beta_EA","beta_AE","beta_HE","mu_H","mu_A","mu_E","para")
+#     
+#     
+#     if (intervention==1){ # 
+#       params2 <- parameters_in
+#       params2["LAMBDA_H"] <- 0
+#     } else if (intervention==2){ #
+#       params2 <- parameters_in
+#       params2["LAMBDA_A"] <- 0
+#     } else if (intervention==3) {
+#       params2 <- parameters_in
+#       params2["LAMBDA_E"] <- 0
+#     } else if (intervention==4){
+#       params2 <- parameters_in
+#       params2["beta_HH"] <- 0
+#     }else if (intervention==5){
+#       params2 <- parameters_in
+#       params2["beta_AA"] <- 0
+#     } else if (intervention==6){
+#       params2 <- parameters_in
+#       params2["beta_EE"] <- 0
+#     } else if (intervention==7){
+#       params2 <- parameters_in
+#       params2["beta_AH"] <- 0
+#       params2["beta_HA"] <- 0
+#     } else if (intervention==8){
+#       params2 <- parameters_in
+#       params2["beta_EH"] <- 0
+#     }else if (intervention==9){
+#       params2 <- parameters_in
+#       params2["beta_EH"] <- 0
+#       params2["beta_HE"] <- 0
+#     }else if (intervention==10){
+#       params2 <- parameters_in
+#       params2["beta_EA"] <- 0
+#       params2["beta_AE"] <- 0
+#     }else if (intervention==11){
+#       params2 <- parameters_in
+#       params2["beta_EA"] <- 0
+#     }else if (intervention==12){
+#       #### New ones - above just variations on single parameters 
+#       #DENMARK NAP 
+#       params2 <- parameters_in
+#       params2["LAMBDA_H"] <- parameters_in["LAMBDA_H"]*0.9
+#       params2["LAMBDA_A"] <- parameters_in["LAMBDA_A"]*0.8
+#       params2["beta_HH"] <- parameters_in["beta_HH"]*0.8
+#       params2["beta_HA"] <- parameters_in["beta_HA"]*0.8
+#       params2["beta_AA"] <- parameters_in["beta_AA"]*0.8
+#       params2["beta_AH"] <- parameters_in["beta_AH"]*0.8
+#       params2["beta_EE"] <- parameters_in["beta_EE"]*0.8
+#       params2["beta_EH"] <- parameters_in["beta_EH"]*0.8
+#       params2["beta_HE"] <- parameters_in["beta_HE"]*0.8
+#       params2["beta_AE"] <- parameters_in["beta_AE"]*0.8
+#       params2["beta_EA"] <- parameters_in["beta_EA"]*0.8
+#     } else if (intervention==13){ # ENGLAND NAP
+#       params2 <- parameters_in
+#       params2["LAMBDA_H"] <- parameters_in["LAMBDA_H"]*0.85
+#       params2["LAMBDA_A"] <- parameters_in["LAMBDA_A"]*0.75
+#       params2["beta_HH"] <- parameters_in["beta_HH"]*0.8
+#       params2["beta_HA"] <- parameters_in["beta_HA"]*0.8
+#       params2["beta_AA"] <- parameters_in["beta_AA"]*0.8
+#       params2["beta_AH"] <- parameters_in["beta_AH"]*0.8
+#       params2["beta_EE"] <- parameters_in["beta_EE"]*0.8
+#       params2["beta_EH"] <- parameters_in["beta_EH"]*0.8
+#       params2["beta_HE"] <- parameters_in["beta_HE"]*0.8
+#       params2["beta_AE"] <- parameters_in["beta_AE"]*0.8
+#       params2["beta_EA"] <- parameters_in["beta_EA"]*0.8
+#     } else if (intervention==14){ #SENEGAL NAP 
+#       params2 <- parameters_in
+#       params2["LAMBDA_H"] <- parameters_in["LAMBDA_H"]*0.95
+#       params2["LAMBDA_A"] <- parameters_in["LAMBDA_A"]*0.95
+#       params2["LAMBDA_H"] <- parameters_in["LAMBDA_E"]*0.95
+#       params2["beta_HH"] <- parameters_in["beta_HH"]*0.9
+#       params2["beta_HA"] <- parameters_in["beta_HA"]*0.9
+#       params2["beta_AA"] <- parameters_in["beta_AA"]*0.9
+#       params2["beta_AH"] <- parameters_in["beta_AH"]*0.9
+#       params2["beta_EE"] <- parameters_in["beta_EE"]*0.9
+#       params2["beta_EH"] <- parameters_in["beta_EH"]*0.9
+#       params2["beta_HE"] <- parameters_in["beta_HE"]*0.9
+#       params2["beta_AE"] <- parameters_in["beta_AE"]*0.9
+#       params2["beta_EA"] <- parameters_in["beta_EA"]*0.9
+#     } else if (intervention==15){ # FARM 
+#       params2 <- parameters_in
+#       params2["LAMBDA_A"] <- parameters_in["LAMBDA_A"]*0.5
+#       params2["beta_HA"] <- parameters_in["beta_HA"]*0.5
+#       params2["beta_AH"] <- parameters_in["beta_AH"]*0.5
+#     }else if (intervention==16){ # HUMAN
+#       params2 <- parameters_in
+#       params2["LAMBDA_H"] <- parameters_in["LAMBDA_H"]*0.5
+#       params2["beta_HH"] <- parameters_in["beta_HH"]*0.5
+#     }else if (intervention==17){ # ENV
+#       params2 <- parameters_in
+#       params2["LAMBDA_E"] <- parameters_in["LAMBDA_E"]*0.5
+#       params2["beta_EE"] <- parameters_in["beta_EE"]*0.5
+#       params2["beta_EH"] <- parameters_in["beta_EH"]*0.5
+#       params2["beta_HE"] <- parameters_in["beta_HE"]*0.5
+#       params2["beta_AE"] <- parameters_in["beta_AE"]*0.5
+#       params2["beta_EA"] <- parameters_in["beta_EA"]*0.5
+#     }else if (intervention==18){ # HUMAN + ANIMAL CONTACT
+#       params2 <- parameters_in
+#       params2["beta_HA"] <- parameters_in["beta_HA"]*0.5
+#       params2["beta_AH"] <- parameters_in["beta_AH"]*0.5
+#     }else if (intervention==19){ # TRANSMISSION
+#       params2 <- parameters_in
+#       params2["beta_HH"] <- parameters_in["beta_HH"]*0.5
+#       params2["beta_HA"] <- parameters_in["beta_HA"]*0.5
+#       params2["beta_AA"] <- parameters_in["beta_AA"]*0.5
+#       params2["beta_AH"] <- parameters_in["beta_AH"]*0.5
+#       params2["beta_EE"] <- parameters_in["beta_EE"]*0.5
+#       params2["beta_EH"] <- parameters_in["beta_EH"]*0.5
+#       params2["beta_HE"] <- parameters_in["beta_HE"]*0.5
+#       params2["beta_AE"] <- parameters_in["beta_AE"]*0.5
+#       params2["beta_EA"] <- parameters_in["beta_EA"]*0.5
+#     }else if (intervention==20){ # USAGE
+#       params2 <- parameters_in
+#       params2["LAMBDA_H"] <- parameters_in["LAMBDA_H"]*0.5
+#       params2["LAMBDA_A"] <- parameters_in["LAMBDA_A"]*0.5
+#       params2["LAMBDA_E"] <- parameters_in["LAMBDA_E"]*0.5
+#     }
+#     
+#     
+#         
+#       
+#     rep(,20)
+#     
+#     A_new <- AMRmodel(times, init_new[c("H","A","E")], u, parameters_in)
+#     
+#     # Initial conditions now 
+#     init_new <- tail(A,1)
+#     
+#     

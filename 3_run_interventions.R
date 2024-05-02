@@ -1,20 +1,41 @@
-### ### Run the interventions on the best fitting parameter sets
-source("model_functions/packages.R")
-### Load functions to run interventions 
-source("model_functions/AMRmodel.R") # model function
-source("model_functions/epid.R") # wrapper for model function
-source("plot_functions/explore_and_plot_time_varying_usage.R") # abx usage
-source("model_functions/epid_intervention.R") # model function with interventions
-source("plot_functions/plotfits_int.R")
+
+###################################################################################
+################################  SEFASI transmission model #####################################
+################################# Run the interventions on the best fitting parameter sets #################################
+################################# Ross Booton & Gwen Knight #####################################
+################################## May 2024 #####################################
+###################################################################################
+
+rm(list = ls())
+library(tidyverse)
+library(data.table)
+setwd(here())
 theme_set(theme_bw())
 
+## Functions
+source("0_model_functions.R")
+
+
+# Run the model on these parameters 
+# for 20 years?
+# set usage to be as it was in 2022 
+end_usage <- usage %>% filter(country == "senegal") %>% 
+  filter(year == max(u$year), month == 12)
+new_usage <- matrix(0,20*12*dim(end_usage)[1],dim(end_usage)[2])
+index <- 1
+for(y in 1:20){
+  for(m in 1:12){
+    end_usage$year <- y
+    end_usage$month <- m
+    new_usage[(1+(index-1) * dim(end_usage)[1]):(index*dim(end_usage)[1]),] = end_usage
+    index <- index + 1
+  }
+}
+
+
+
+
 ################################ boxplot of interventions  ################################ 
-getPalette = colorRampPalette(piratepal(palette = "basel",length=10))
-cols <- c(unname(piratepal(palette = "basel",length=10))[1:6] ,"grey",unname(piratepal(palette = "pony",length=10))[2:5],
-          unname(piratepal(palette = "basel",length=10))[7:10],unname(piratepal(palette = "pony",length=10))[7:8],"white","black")
-
-source("plotfits_int_box.R")
-
 best_100_para_senegal <- read.csv("output/best_100_para_senegal.csv")
 best_100_para_england <- read.csv("output/best_100_para_england.csv")
 best_100_para_denmark <- read.csv("output/best_100_para_denmark.csv")

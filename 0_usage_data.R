@@ -1,12 +1,6 @@
 #### Usage data
 # Have to extend to all timepoints and fill in the gaps in the data 
 
-
-
-####### CHECK WHY SOME NAS??? 
-
-### NEED TO REPLICATE FOR MONTHS
-
 library(tidyverse)
 theme_set(theme_bw(base_size = 11))
 # take data from the literature and get a timeseries for use in ODE solve
@@ -88,7 +82,7 @@ for(i in c("denmark","senegal","england")){
     fill$source <- j
     
     # Remove completed values in u to stop this repeating (this is a better subtle fit instead of constant backwards)
-    w <- intersect(intersect(which(u$country  == i), which(u$source == j)),which(u$year < first_data))
+    w <- intersect(intersect(which(u$country  == i), which(u$source == j)),which(u$year <= first_data))
     u[w,"kg"] <- -10 # filter out at end
     
     # Save 
@@ -103,9 +97,15 @@ ggplot(u_full, aes(x=year, y = kg, group = interaction(country,source))) +
   facet_wrap(~country, scales = "free") + 
   geom_point(data = usage)
 
+### Environment? 
+u_full <- u_full %>%
+  pivot_wider(names_from = source, values_from = kg) %>%
+  mutate(environ = (animals + humans)) %>% # relative to sum 
+  pivot_longer(cols = c("animals","humans","environ"), values_to = "kg", names_to = "source")
+
 ## Normalise: divide by max value in the country 
-u_full <- u_full %>% group_by(country, source) %>% mutate(max = max(kg),
-                                                normalise_kg = kg / max) %>%
+u_full <- u_full %>% group_by(country, source) %>% 
+  mutate(max = max(kg), normalise_kg = kg / max) %>%
   ungroup() %>% 
   group_by(year) %>% 
   complete(country, source) %>% 
@@ -124,19 +124,17 @@ ggplot(u_full, aes(x=year, y = kg, group = interaction(country,source))) +
 # Need to months
 u_full <- expand(u_full, year = unique(year), month = 1:12)  %>%
   left_join(u_full, by = 'year') #%>% 
-  # filter(year == 1990) %>%
-  # print(n=Inf)
+# filter(year == 1990) %>%
+# print(n=Inf)
 
 intro_date <- min(u_full$year)
 u_full <- u_full %>% ungroup()
 u_full$norm_year <- (u_full$year - intro_date) 
 u_full$time <- (u_full$norm_year * 12) + u_full$month
-## normalise_kg needs to change 
-u_full$kg_month <- u_full$kg_month/12
 
-ggplot(u_full, aes(x=time, y = normalise_kg, group = interaction(country,source))) + 
-  geom_line(aes(col = source)) + 
-  facet_wrap(~country, scales = "free") + 
+ggplot(u_full, aes(x=year, y = normalise_kg, group = interaction(country,source))) +
+  geom_line(aes(col = source)) +
+  facet_wrap(~country, scales = "free") +
   geom_point(data = u_full)
 
-write.csv(u_full, "data/input_usage.csv")
+write.csv(u_full, "data/input_usage.csv") # with environment! 
