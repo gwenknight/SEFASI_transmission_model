@@ -8,9 +8,11 @@
 rm(list = ls())
 library(tidyverse)
 library(data.table)
+library(patchwork)
+library(ggcorrplot) # for ggcorrplot()
 library(here)
 setwd(here())
-theme_set(theme_bw())
+theme_set(theme_bw(base_size =  11))
 
 # initial values
 source("0_initial_conditions.R")
@@ -28,18 +30,18 @@ data_fit <- res.table %>% select(country,var,time,percent) %>%
 for(i in 1:3){
   print(i)
   
-  if(i == 1){FULLDATA <-fread("fits/denmark20500000.csv")[,-1]
+  if(i == 1){FULLDATA <-fread("fits/denmark88500000.csv")[,-1]
   colnames(FULLDATA) <- c("time", "H", "A", "E", "paraset")
   nruns = length(unique(FULLDATA$paraset))
-  FULLDATA$year <- rep(c(init_denmark_year,rep(seq(init_denmark_year+1,2022,1),each = 12)),nruns)}
+  FULLDATA$year <- rep(c(init_denmark_year,rep(seq(init_denmark_year+1,2022,1),each = 52)),nruns)}
   if(i == 2){FULLDATA <-fread("fits/england25300000.csv")[,-1]
   colnames(FULLDATA) <- c("time", "H", "A", "E", "paraset")
   nruns = length(unique(FULLDATA$paraset))
   FULLDATA$year <- rep(c(init_england_year,rep(seq(init_england_year+1,2022,1),each = 12)),nruns)}
-  if(i == 3){FULLDATA <-fread("fits/senegal22900000.csv")[,-1]
+  if(i == 3){FULLDATA <-fread("fits/senegal98900000.csv")[,-1]
   colnames(FULLDATA) <- c("time", "H", "A", "E", "paraset")
   nruns = length(unique(FULLDATA$paraset))
-  FULLDATA$year <- rep(c(init_senegal_year,rep(seq(init_senegal_year+1,2022,1),each = 12)),nruns)
+  FULLDATA$year <- rep(c(init_senegal_year,rep(seq(init_senegal_year+1,2022,1),each = 52)),nruns)
   }
   
   FULLDATA <- FULLDATA %>% pivot_longer(cols = c("H","A","E"))
@@ -112,7 +114,7 @@ ls_top_den <- ls_top %>% filter(ctry == "Denmark") %>% select(paraset) %>% pull(
 
 
 # Find best outputs for the top parasets 
-FULLDATA <-fread("fits/denmark20500000.csv")[,-1]
+FULLDATA <-fread("fits/denmark88500000.csv")[,-1]
 colnames(FULLDATA) <- c("time", "H", "A", "E", "paraset")
 best_100_denmark <- FULLDATA %>% filter(paraset %in% ls_top_den)
 write.csv(best_100_denmark,"output/best_100_denmark.csv")
@@ -122,7 +124,7 @@ colnames(FULLDATA) <- c("time", "H", "A", "E", "paraset")
 best_100_england <- FULLDATA %>% filter(paraset %in% ls_top_eng)
 write.csv(best_100_england,"output/best_100_england.csv")
 
-FULLDATA <-fread("fits/senegal22900000.csv")[,-1]
+FULLDATA <-fread("fits/senegal98900000.csv")[,-1]
 colnames(FULLDATA) <- c("time", "H", "A", "E", "paraset")
 best_100_senegal <- FULLDATA %>% filter(paraset %in% ls_top_sen)
 write.csv(best_100_senegal,"output/best_100_senegal.csv")
@@ -153,9 +155,9 @@ best_100_senegal <- read_csv("output/best_100_senegal.csv")[,-1]
 best_100_denmark <- read_csv("output/best_100_denmark.csv")[,-1]
 best_100_england <- read_csv("output/best_100_england.csv")[,-1]
 
-best <- rbind(best_100_senegal %>% mutate(country = "senegal", year = rep(c(init_senegal_year,rep(seq(init_senegal_year+1,2022,1),each = 12)),100)),
-              best_100_england %>% mutate(country ="england", year = rep(c(init_england_year,rep(seq(init_england_year+1,2022,1),each = 12)),100)),
-              best_100_denmark %>% mutate(country ="denmark", year = rep(c(init_denmark_year,rep(seq(init_denmark_year+1,2022,1),each = 12)),100))) %>%
+best <- rbind(best_100_senegal %>% mutate(country = "Senegal", year = rep(c(init_senegal_year,rep(seq(init_senegal_year+1,2022,1),each = 52)),100)),
+              best_100_england %>% mutate(country ="England", year = rep(c(init_england_year,rep(seq(init_england_year+1,2022,1),each = 12)),100)),
+              best_100_denmark %>% mutate(country ="Denmark", year = rep(c(init_denmark_year,rep(seq(init_denmark_year+1,2022,1),each = 52)),100))) %>%
   pivot_longer(cols = c("H","A","E"))
 
 #data_fit <- data_fit %>% rename(country = ctry)
@@ -167,7 +169,7 @@ ggplot(best, aes(x=year, y = value, group = interaction(country,paraset))) +
   scale_y_continuous("Proportion resistant", lim = c(0,1)) + 
   scale_x_continuous("Year")
 
-ggsave("plots/model_fits_0205_nobetalimits.pdf")
+ggsave("plots/model_fits_0205_nobetalimits_weeks2.pdf")
 
 ggplot(best, aes(x=year, y = value, group = interaction(country,paraset))) + 
   geom_line(aes(col = country)) + 
@@ -176,7 +178,7 @@ ggplot(best, aes(x=year, y = value, group = interaction(country,paraset))) +
   scale_y_continuous("Proportion resistant", lim = c(0,1)) + 
   scale_x_continuous("Year")
 
-ggsave("plots/model_fits_flip_0205_nobetalimits.pdf")
+ggsave("plots/model_fits_flip_0205_nobetalimits_weeks2.pdf")
 
 
 
@@ -186,23 +188,54 @@ fits_av <- best %>% group_by(year, country, name) %>%
             min025 = quantile(value,probs=c(0.025)), 
             max975 = quantile(value,probs=c(0.975)))
 
-ggplot(fits_av, aes(x=year, y = mean)) + 
+res.table.fit[which(res.table.fit$country == "denmark"),"country"] <- "Denmark"
+res.table.fit[which(res.table.fit$country == "senegal"),"country"] <- "Senegal"
+res.table.fit[which(res.table.fit$country == "england"),"country"] <- "England"
+
+g1 <- ggplot(fits_av, aes(x=year, y = mean)) + 
   geom_point() + 
   geom_errorbar(aes(ymin = min025, ymax = max975)) + 
-  geom_point(data = res.table %>% rename(name = var), aes(x=time, y = percent/100, col = name)) + 
-  facet_wrap(country ~ name) + 
-  guides(col="none")
-ggsave("plots/fits_mean_quantile_nobetalimits.pdf")
+  geom_point(data = res.table.fit %>% rename(name = var), aes(x=time, y = percent/100, col = country)) + 
+  facet_grid(country ~ name) + 
+  guides(col="none") + 
+  scale_y_continuous("Proportion resistance (over top 100 fits)") + 
+  scale_x_continuous("Year")
+ggsave("plots/fits_mean_quantile.pdf")
 
 ############# Visualise parameter outputs
-best_100_para_senegal$ctry <- "senegal"
-best_100_para_england$ctry <- "england"
-best_100_para_denmark$ctry <- "denmark"
+best_100_para_senegal <- read_csv("output/best_100_para_senegal.csv")[,-1]
+best_100_para_denmark <- read_csv("output/best_100_para_denmark.csv")[,-1]
+best_100_para_england <- read_csv("output/best_100_para_england.csv")[,-1]
+
+best_100_para_senegal$ctry <- "Senegal"
+best_100_para_england$ctry <- "England"
+best_100_para_denmark$ctry <- "Denmark"
 best_para <- rbind(best_100_para_senegal,
                    best_100_para_england,
                    best_100_para_denmark)
 
-ggplot(best_para %>% pivot_longer(cols = "LAMBDA_H":"mu_E"), aes(x=name, y = value)) + 
+g2 <- ggplot(best_para %>% pivot_longer(cols = "LAMBDA_H":"mu_E"), 
+             aes(x=ctry, y = value)) + 
   geom_violin(aes(fill=ctry),alpha = 0.2) +
-  facet_wrap(~name, scales = "free", nrow = 3)
-ggsave("plots/best_paras_nobetalimits.pdf")
+  facet_wrap(~name, scales = "free", nrow = 3) + 
+  scale_x_discrete("", labels = c("","","")) + 
+  scale_y_continuous("Best fit distribution") + 
+  scale_fill_discrete("Country")
+ggsave("plots/best_paras.pdf")
+
+g1 + g2
+ggsave("plots/fig1.pdf", width = 20, height = 10)
+
+### What about the beta parameters? 
+ggplot(best_para, aes(x=beta_HH, y = beta_AA)) + geom_boxplot(aes(col = ctry))
+ggplot(best_para, aes(x=beta_HH, y = beta_EE)) + geom_boxplot(aes(col = ctry))
+ggplot(best_para, aes(x=beta_EE, y = beta_AA)) + geom_boxplot(aes(col = ctry))
+
+cor(numeric_vars, use = "pairwise.complete.obs")
+
+g1 <- ggcorrplot(tl.cex = 7,type = "lower",cor(best_para[which(best_para$ctry == "senegal"),1:15],use = "pairwise.complete.obs")) + ggtitle("Senegal")
+g2 <- ggcorrplot(tl.cex = 7,type = "lower",cor(best_para[which(best_para$ctry == "denmark"),1:15],use = "pairwise.complete.obs")) + ggtitle("Denmark")
+g3 <- ggcorrplot(tl.cex = 7,type = "lower",cor(best_para[which(best_para$ctry == "england"),1:15],use = "pairwise.complete.obs")) + ggtitle("England")
+
+g1 + g2 + g3 + guide_area() + plot_layout(guides = "collect")
+ggsave("plots/correlation_para.pdf")

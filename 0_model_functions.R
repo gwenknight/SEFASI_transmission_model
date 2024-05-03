@@ -24,6 +24,9 @@ AMRmodel <- function(times, init, u, parameters_in){
   # init = initial conditions 
   # u = usage per year 
   # parameters = needed parameters
+  # Checks on parameters
+  if(length(parameters_in) > 16){break}
+  
   parameters <- list(LAMBDA_H = parameters_in[1],
                      LAMBDA_A = parameters_in[2],
                      LAMBDA_E = parameters_in[3],

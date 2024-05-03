@@ -11,6 +11,7 @@ library(tidyverse)
 library(data.table)
 library(parallel)
 library(doParallel)
+library(patchwork)
 setwd(here())
 theme_set(theme_bw())
 
@@ -48,9 +49,9 @@ colnames(new_usage) <- colnames(usage)[1:dim(new_usage)[2]]
 #ggplot(new_usage, aes(x=year, y = normalise_kg, group = interaction(source,country))) + geom_line(aes(col = country))
 
 ######### run interventions
-best_100_para_senegal <- as.matrix(read.csv("output/best_100_para_senegal.csv"))[,-1]
-best_100_para_england <- as.matrix(read.csv("output/best_100_para_england.csv"))[,-1]
-best_100_para_denmark <- as.matrix(read.csv("output/best_100_para_denmark.csv"))[,-1]
+best_100_para_senegal <- as.matrix(read.csv("output/best_100_para_senegal.csv"))[,-1][1:10,]
+best_100_para_england <- as.matrix(read.csv("output/best_100_para_england.csv"))[,-1][1:10,]
+best_100_para_denmark <- as.matrix(read.csv("output/best_100_para_denmark.csv"))[,-1][1:10,]
 
 nc = detectCores()
 ### SENEGAL 
@@ -70,7 +71,6 @@ output_results <-""
 output_results <- parLapply(cl, split(best_100_para_senegal, row(best_100_para_senegal)), function(x) AMRmodel_interv(seq(1,(2022 - init_senegal_year)*52,1), init_senegal, 
                                                                                                                       usage %>% filter(country == "senegal", year >= init_senegal_year), 
                                                                                                                       new_usage %>% filter(country == "senegal"), as.numeric(x))) # for each country j
-
 # Unlist and bind the results into a matrix
 output_matrix <- do.call(rbind, output_results)
 
@@ -80,67 +80,209 @@ write.csv(output_matrix, paste0("fits_interv/","senegal",dim(output_matrix)[1],"
 # Stop the cluster
 stopCluster(cl)
 
+### DENMARK 
+# Make cluster
+cl = makeCluster(nc-3)
+registerDoParallel(cl)
 
-################################ boxplot of interventions  ################################ 
-best_100_para_senegal <- read.csv("output/best_100_para_senegal.csv")[,-1]
-best_100_para_england <- read.csv("output/best_100_para_england.csv")[,-1]
-best_100_para_denmark <- read.csv("output/best_100_para_denmark.csv")[,-1]
+# Export things to the cluster
+#clusterExport(cl, c("epid","ode"))
+clusterExport(cl, c("usage","new_usage","best_100_para_denmark","init_denmark","init_denmark_year"))
+clusterEvalQ(cl, library("tidyverse", character.only = TRUE))
+clusterEvalQ(cl, source("0_model_functions.R"))
+#clusterEvalQ(cl, source("plot_functions/explore_and_plot_time_varying_usage.R"))
 
-se <- plotfits_int_box(best_100_para_england,"england")
-sd <- plotfits_int_box(best_100_para_denmark,"denmark")
-ss <- plotfits_int_box(best_100_para_senegal,"senegal")
+# Use the parLapply function to run your function in parallel
+output_results <-""
+output_results <- parLapply(cl, split(best_100_para_denmark, row(best_100_para_denmark)), function(x) AMRmodel_interv(seq(1,(2022 - init_denmark_year)*52,1), init_denmark, 
+                                                                                                                      usage %>% filter(country == "denmark", year >= init_denmark_year), 
+                                                                                                                      new_usage %>% filter(country == "denmark"), as.numeric(x))) # for each country j
+# Unlist and bind the results into a matrix
+output_matrix <- do.call(rbind, output_results)
 
-se <- as.data.frame(se) %>% mutate(country = "england")
-sd <- as.data.frame(sd) %>% mutate(country = "denmark")
-ss <- as.data.frame(ss) %>% mutate(country = "senegal")
+# Save them 
+write.csv(output_matrix, paste0("fits_interv/","denmark",dim(output_matrix)[1],".csv"))
 
-impact_all <- rbind(se, sd, ss)
-write.csv(impact_all, "output/impact_all.csv")
+# Stop the cluster
+stopCluster(cl)
 
-# Explore impact
-ggplot(impact_all %>% filter(intervention > 11), 
-       aes(x=intervention, y = differenceH, group = intervention)) + 
-  geom_boxplot() + 
-  facet_wrap(~country) + 
-  scale_x_continuous(breaks = seq(12,20,1),
-                     labels = c("Denmark NAP","England NAP", "Senegal NAP",
-                                "Farm","Human","Environment","Human + Animal contact", 
-                                "Transmission", "Usage")) + 
-  theme(axis.text.x = element_text(angle = 60, hjust = 1, vjust = 1)) + 
-  scale_y_continuous("Difference in human prevalence")
-ggsave("plots/interventionH_boxplot_all.pdf")
+### ENGLAND 
+# Make cluster
+cl = makeCluster(nc-3)
+registerDoParallel(cl)
 
-### Total differences
-impact_all$total_diff = impact_all$differenceH + impact_all$differenceE + impact_all$differenceA
+# Export things to the cluster
+#clusterExport(cl, c("epid","ode"))
+clusterExport(cl, c("usage","new_usage","best_100_para_england","init_england","init_england_year"))
+clusterEvalQ(cl, library("tidyverse", character.only = TRUE))
+clusterEvalQ(cl, source("0_model_functions.R"))
+#clusterEvalQ(cl, source("plot_functions/explore_and_plot_time_varying_usage.R"))
 
-ggplot(impact_all %>% filter(intervention > 11), 
-       aes(x=intervention, y = total_diff, group = intervention)) + 
-  geom_boxplot() + 
-  facet_wrap(~country) + 
-  scale_x_continuous(breaks = seq(12,20,1),
-                     labels = c("Denmark NAP","England NAP", "Senegal NAP",
-                                "Farm","Human","Environment","Human + Animal contact", 
-                                "Transmission", "Usage")) + 
-  theme(axis.text.x = element_text(angle = 60, hjust = 1, vjust = 1)) + 
-  scale_y_continuous("Difference in total AMR prevalence")
-ggsave("plots/interventionT_boxplot_all.pdf")
+# Use the parLapply function to run your function in parallel
+output_results <-""
+output_results <- parLapply(cl, split(best_100_para_england, row(best_100_para_england)), function(x) AMRmodel_interv(seq(1,(2022 - init_england_year)*52,1), init_england, 
+                                                                                                                      usage %>% filter(country == "england", year >= init_england_year), 
+                                                                                                                      new_usage %>% filter(country == "england"), as.numeric(x))) # for each country j
+# Unlist and bind the results into a matrix
+output_matrix <- do.call(rbind, output_results)
 
-### Not just on human
-impact_all_long <- impact_all %>% pivot_longer(differenceH:differenceE_percent)
+# Save them 
+write.csv(output_matrix, paste0("fits_interv/","england",dim(output_matrix)[1],".csv"))
 
-ggplot(impact_all_long %>% filter(intervention > 11), aes(x=intervention, 
-                                                          y = value, 
-                                                          group = interaction(intervention,name))) + 
-  facet_wrap(country~name, nrow = 3, scales = "free") + 
-  geom_boxplot() + 
-  scale_x_continuous(breaks = seq(12,20,1),
-                     labels = c("Denmark NAP","England NAP", "Senegal NAP",
-                                "Farm","Human","Environment","Human + Animal contact", "Transmission", "Usage")) + 
-  theme(axis.text.x = element_text(angle = 60, hjust = 1, vjust = 1)) + 
-  scale_y_continuous("Difference in prevalence")
-ggsave("plots/intervention_boxplot_all_3indicators_all.pdf", width = 20, height = 10)
+# Stop the cluster
+stopCluster(cl)
 
-#source("combined_plots.R") #produces the plots by interventiona and country
+############################################################################################################################################
+##################################################################################################################################
+########## EXPLORE outputs 
+interv_senegal <- read.csv("fits_interv/senegal207690.csv")[,-1]
+interv_england <- read.csv("fits_interv/england229530.csv")[,-1]
+interv_denmark <- read.csv("fits_interv/denmark185850.csv")[,-1]
+interv_senegal$country <- "senegal"
+interv_england$country <- "england"
+interv_denmark$country <- "denmark"
+
+interv <- rbind(interv_senegal, interv_denmark, interv_england) %>%
+  filter(!para == 0)
+interv_0 <- interv %>% filter(interven == 0) %>% rename(baseline = interven,
+                                                        H0 = H, A0 = A, E0 = E)
+
+interv_rel <- left_join(interv %>% filter(interven > 0), interv_0) %>%
+  mutate(diffH = H0 - H,
+         diffA = A0 - A,
+         diffE = E0 - E)
+
+# After 5 yrs, how has resistance change? diff = absolute proportion. Perc = percentage reduction 
+interv_rel_5yr <- interv_rel %>% filter(time == 5 * 52) %>% rowwise() %>% 
+  mutate(percH = 100 * diffH/H0,
+         percA = 100 * diffA/A0,
+         percE = 100 * diffE/E0)
+# Can do a total? what does this mean? 
+interv_rel_tot <- interv_rel %>% group_by(para, interven, country) %>% summarise(sum(diff))
+
+######### 
+intervention_names <- c("H abx to zero","A abx to zero", "E. abx to zero",
+                        "HH spread to zero", "AA spread to zero", "EE spread to zero",
+                        "A-H spread to zero","EH spread to zero","E-H spread to zero",
+                        "E-A spread to zero","EA spread to zero",
+                        "Denmark package","England package","Senegal package",
+                        "Farm target","H target","E target",
+                        "A-H spread down 50%","Spread down 50%","Abx down 50%")
+
+ggplot(interv_rel_5yr, aes(x=interven, y = diffH, group = interven)) + 
+  ggtitle("Difference at 5yrs in humans") + 
+  geom_boxplot(aes(fill = factor(interven))) + 
+  facet_wrap(~country,ncol = 1) + 
+  scale_x_continuous(breaks = seq(1,20,1), labels = intervention_names,"Interventions") + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + 
+  scale_fill_manual(values = c("pink","pink","pink", # abx targe
+                               "lightblue","lightblue","lightblue", # spread targe
+                               "lightblue","lightblue","lightblue",
+                               "lightblue","lightblue",
+                               "lightyellow","lightyellow","lightyellow",# mix
+                               "lightyellow","lightyellow","lightyellow",
+                               "lightblue","lightblue","pink")) + 
+  coord_flip() + 
+  geom_hline(yintercept = 0) + 
+  theme(legend.position = "none") + 
+  scale_y_continuous("Absolute difference in proportion resistant at 5yrs")
+ggsave("plots/all_interventions_H.pdf")
+
+gi1 <- ggplot(interv_rel_5yr %>% filter(interven>11), aes(x=interven, y = diffH, group = interven)) + 
+  geom_boxplot(aes(fill = factor(interven))) + 
+  #ggtitle("Difference at 5yrs in humans") + 
+  facet_wrap(~country,ncol = 1) + 
+  scale_x_continuous(breaks = seq(12,20,1), labels = intervention_names[12:20],"Interventions") + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + 
+  scale_fill_manual(values = c("lightyellow","lightyellow","lightyellow",# mix
+                               "lightyellow","lightyellow","lightyellow",
+                               "lightblue","lightblue","pink")) + 
+  coord_flip() + 
+  geom_hline(yintercept = 0) + 
+  theme(legend.position = "none") + 
+  scale_y_continuous("Absolute difference in proportion resistant at 5yrs")
+ggsave("plots/interv_in_paper_H.pdf")
+
+gi2 <- ggplot(interv_rel_5yr %>% filter(interven>11), aes(x=interven, y = percH, group = interven)) + 
+  geom_boxplot(aes(fill = factor(interven))) + 
+ # ggtitle("Difference at 5yrs in humans") + 
+  facet_wrap(~country,ncol = 1) + 
+  scale_x_continuous(breaks = seq(12,20,1), labels = intervention_names[12:20],"Interventions") + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + 
+  scale_fill_manual(values = c("lightyellow","lightyellow","lightyellow",# mix
+                               "lightyellow","lightyellow","lightyellow",
+                               "lightblue","lightblue","pink")) + 
+  coord_flip() + 
+  geom_hline(yintercept = 100) + 
+  theme(legend.position = "none") + 
+  scale_y_continuous("Percentage reduction in proportion resistant at 5yrs")
+ggsave("plots/interv_in_paper_Hperc.pdf")
+
+gi1 + gi2 
+ggsave("plots/fig2.pdf", width = 12, height = 7)
+
+### Animals
+ggplot(interv_rel_5yr %>% filter(interven>11), aes(x=interven, y = diffA, group = interven)) + 
+  geom_boxplot(aes(fill = factor(interven))) + 
+  ggtitle("Difference at 5yrs in animals") + 
+  facet_wrap(~country,ncol = 1) + 
+  scale_x_continuous(breaks = seq(12,20,1), labels = intervention_names[12:20],"Interventions") + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + 
+  scale_fill_manual(values = c("lightyellow","lightyellow","lightyellow",# mix
+                               "lightyellow","lightyellow","lightyellow",
+                               "lightblue","lightblue","pink")) + 
+  coord_flip() + 
+  geom_hline(yintercept = 0) + 
+  theme(legend.position = "none") + 
+  scale_y_continuous("Absolute difference in proportion resistant at 5yrs")
+ggsave("plots/interv_in_paper_A.pdf")
+
+ggplot(interv_rel_5yr %>% filter(interven>11), aes(x=interven, y = percA, group = interven)) + 
+  geom_boxplot(aes(fill = factor(interven))) + 
+  ggtitle("Difference at 5yrs in animals") + 
+  facet_wrap(~country,ncol = 1) + 
+  scale_x_continuous(breaks = seq(12,20,1), labels = intervention_names[12:20],"Interventions") + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + 
+  scale_fill_manual(values = c("lightyellow","lightyellow","lightyellow",# mix
+                               "lightyellow","lightyellow","lightyellow",
+                               "lightblue","lightblue","pink")) + 
+  coord_flip() + 
+  geom_hline(yintercept = 0) + 
+  theme(legend.position = "none") + 
+  scale_y_continuous("Percentage reduction in proportion resistant at 5yrs")
+ggsave("plots/interv_in_paper_Aperc.pdf")
+
+### Environment
+ggplot(interv_rel_5yr %>% filter(interven>11), aes(x=interven, y = diffE, group = interven)) + 
+  geom_boxplot(aes(fill = factor(interven))) + 
+  ggtitle("Difference at 5yrs in environment") + 
+  facet_wrap(~country,ncol = 1) + 
+  scale_x_continuous(breaks = seq(12,20,1), labels = intervention_names[12:20],"Interventions") + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + 
+  scale_fill_manual(values = c("lightyellow","lightyellow","lightyellow",# mix
+                               "lightyellow","lightyellow","lightyellow",
+                               "lightblue","lightblue","pink")) + 
+  coord_flip() + 
+  geom_hline(yintercept = 0) + 
+  theme(legend.position = "none") + 
+  scale_y_continuous("Absolute difference in proportion resistant at 5yrs")
+ggsave("plots/interv_in_paper_E.pdf")
+
+ggplot(interv_rel_5yr %>% filter(interven>11), aes(x=interven, y = percE, group = interven)) + 
+  geom_boxplot(aes(fill = factor(interven))) + 
+  ggtitle("Difference at 5yrs in environment") + 
+  facet_wrap(~country,ncol = 1) + 
+  scale_x_continuous(breaks = seq(12,20,1), labels = intervention_names[12:20],"Interventions") + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + 
+  scale_fill_manual(values = c("lightyellow","lightyellow","lightyellow",# mix
+                               "lightyellow","lightyellow","lightyellow",
+                               "lightblue","lightblue","pink")) + 
+  coord_flip() + 
+  geom_hline(yintercept = 0) + 
+  theme(legend.position = "none") + 
+  scale_y_continuous("Percentage reduction in proportion resistant at 5yrs")
+ggsave("plots/interv_in_paper_Eperc.pdf")
+
 
 
 
