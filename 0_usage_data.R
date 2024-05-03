@@ -121,8 +121,8 @@ ggplot(u_full, aes(x=year, y = kg, group = interaction(country,source))) +
   facet_wrap(~country, scales = "free") + 
   geom_point(data = u_full)
 
-# Need to months
-u_full <- expand(u_full, year = unique(year), month = 1:12)  %>%
+# Need to weekly
+u_full <- expand(u_full, year = unique(year), week = 1:52)  %>%
   left_join(u_full, by = 'year') #%>% 
 # filter(year == 1990) %>%
 # print(n=Inf)
@@ -130,7 +130,7 @@ u_full <- expand(u_full, year = unique(year), month = 1:12)  %>%
 intro_date <- min(u_full$year)
 u_full <- u_full %>% ungroup()
 u_full$norm_year <- (u_full$year - intro_date) 
-u_full$time <- (u_full$norm_year * 12) + u_full$month
+u_full$time <- (u_full$norm_year * 52) + u_full$week
 
 ggplot(u_full, aes(x=year, y = normalise_kg, group = interaction(country,source))) +
   geom_line(aes(col = source)) +
