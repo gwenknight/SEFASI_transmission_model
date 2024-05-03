@@ -49,9 +49,9 @@ colnames(new_usage) <- colnames(usage)[1:dim(new_usage)[2]]
 #ggplot(new_usage, aes(x=year, y = normalise_kg, group = interaction(source,country))) + geom_line(aes(col = country))
 
 ######### run interventions
-best_100_para_senegal <- as.matrix(read.csv("output/best_100_para_senegal.csv"))[,-1][1:10,]
-best_100_para_england <- as.matrix(read.csv("output/best_100_para_england.csv"))[,-1][1:10,]
-best_100_para_denmark <- as.matrix(read.csv("output/best_100_para_denmark.csv"))[,-1][1:10,]
+best_100_para_senegal <- as.matrix(read.csv("output/best_100_para_senegal.csv"))[,-1]
+best_100_para_england <- as.matrix(read.csv("output/best_100_para_england.csv"))[,-1]
+best_100_para_denmark <- as.matrix(read.csv("output/best_100_para_denmark.csv"))[,-1]
 
 nc = detectCores()
 ### SENEGAL 
@@ -158,7 +158,7 @@ interv_rel_5yr <- interv_rel %>% filter(time == 5 * 52) %>% rowwise() %>%
          percA = 100 * diffA/A0,
          percE = 100 * diffE/E0)
 # Can do a total? what does this mean? 
-interv_rel_tot <- interv_rel %>% group_by(para, interven, country) %>% summarise(sum(diff))
+#interv_rel_tot <- interv_rel %>% group_by(para, interven, country) %>% summarise(sum(diff))
 
 ######### 
 intervention_names <- c("H abx to zero","A abx to zero", "E. abx to zero",

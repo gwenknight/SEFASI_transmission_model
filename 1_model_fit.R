@@ -36,19 +36,19 @@ p1 <- read.csv("output/parameter_set_100000.csv")[,-1]
 
 ### EXPLORE how to Run for SENEGAL
 ## running from different years for each now now 
-times <- seq(1,(2022 - init_senegal_year)*52,1) # start - 2022 weekly
-
-A_big <- c()
-for(ii in 39500:39510){#dim(p1)[1]){
-  parameters <-as.numeric(p1[ii,])
-  A <- AMRmodel(times, init_senegal, usage %>% filter(country == "senegal", year >= init_senegal_year), parameters)
-  A$year <- c(init_senegal_year,rep(seq(init_senegal_year,init_senegal_year + 2022 - init_senegal_year-1,1),each = 52))
-  A$week <- c(1,rep(seq(1,52,1),2022 - init_senegal_year))
-  A$para <- ii
-  # Store
-  A_big <- rbind(A_big, A)
-}
-
+# times <- seq(1,(2022 - init_senegal_year)*52,1) # start - 2022 weekly
+# 
+# A_big <- c()
+# for(ii in 39500:39510){#dim(p1)[1]){
+#   parameters <-as.numeric(p1[ii,])
+#   A <- AMRmodel(times, init_senegal, usage %>% filter(country == "senegal", year >= init_senegal_year), parameters)
+#   A$year <- c(init_senegal_year,rep(seq(init_senegal_year,init_senegal_year + 2022 - init_senegal_year-1,1),each = 52))
+#   A$week <- c(1,rep(seq(1,52,1),2022 - init_senegal_year))
+#   A$para <- ii
+#   # Store
+#   A_big <- rbind(A_big, A)
+# }
+#
 # # Explore output
 # A_big_o <- A_big # store
 # A_big <- as.data.frame(A_big) %>% pivot_longer(cols = c("H","A","E"))
@@ -116,7 +116,7 @@ clusterEvalQ(cl, source("0_model_functions.R"))
 
 # Use the parLapply function to run your function in parallel
 output_results <-""
-output_results <- parLapply(cl, split(p1, row(p1)), function(x) AMRmodel(seq(1,(2022 - init_denmark_year)*12,1), init_denmark, usage %>% filter(country == "denmark", year >= init_denmark_year), as.numeric(x))) # for each country j
+output_results <- parLapply(cl, split(p1, row(p1)), function(x) AMRmodel(seq(1,(2022 - init_denmark_year)*52,1), init_denmark, usage %>% filter(country == "denmark", year >= init_denmark_year), as.numeric(x))) # for each country j
 
 # Unlist and bind the results into a matrix
 output_matrix <- do.call(rbind, output_results)
@@ -141,7 +141,7 @@ clusterEvalQ(cl, source("0_model_functions.R"))
 
 # Use the parLapply function to run your function in parallel
 output_results <-""
-output_results <- parLapply(cl, split(p1, row(p1)), function(x) AMRmodel(seq(1,(2022 - init_england_year)*12,1), init_england, usage %>% filter(country == "england", year >= init_england_year), as.numeric(x))) # for each country j
+output_results <- parLapply(cl, split(p1, row(p1)), function(x) AMRmodel(seq(1,(2022 - init_england_year)*52,1), init_england, usage %>% filter(country == "england", year >= init_england_year), as.numeric(x))) # for each country j
 
 # Unlist and bind the results into a matrix
 output_matrix <- do.call(rbind, output_results)
