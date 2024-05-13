@@ -3,13 +3,14 @@
 
 library(tidyverse)
 theme_set(theme_bw(base_size = 11))
-# take data from the literature and get a timeseries for use in ODE solve
 
+source("0_initial_conditions.R")
+min_year <- min(init_denmark_year, init_england_year, init_senegal_year)
+
+# Data from literature: fill in gaps for model 
 usage <- read.csv("data/usage.csv")
 
-# Extend to give data for all years (1900 - 2050)
-
-#usage_full <- 
+# Extend to give data for all years from start of 1900s for now
 
 u <- usage %>% select(country, year, source, kg) %>% 
   complete(country, source, year) %>% 
@@ -97,6 +98,29 @@ ggplot(u_full, aes(x=year, y = kg, group = interaction(country,source))) +
   facet_wrap(~country, scales = "free") + 
   geom_point(data = usage)
 
+## Denmark: antibiotic usage controls from 2010. 
+# Only data in 2003 and 2015
+usage %>% filter(country == "denmark", source == "animals")
+ggplot(u_full %>% filter(country == "denmark", source == "animals"), aes(x=year, y = kg)) + geom_line()
+# Fill in same level 2003 - 2010
+# then decline 2010 to 2015 value
+d_10 <- u_full %>% filter(country == "denmark", source == "animals", year == 2010)
+d_15 <- u_full %>% filter(country == "denmark", source == "animals", year == 2015)
+
+grad_1015 <- (d_15$kg - d_10$kg)/5
+
+w11 <- intersect(intersect(which(u_full$country == "denmark"), which(u_full$source == "animals")), which(u_full$year == 2011))
+w12 <- intersect(intersect(which(u_full$country == "denmark"), which(u_full$source == "animals")), which(u_full$year == 2012))
+w13 <- intersect(intersect(which(u_full$country == "denmark"), which(u_full$source == "animals")), which(u_full$year == 2013))
+w14 <- intersect(intersect(which(u_full$country == "denmark"), which(u_full$source == "animals")), which(u_full$year == 2014))
+u_full[w11,"kg"] <- d_10$kg + grad_1015 * 1 
+u_full[w12,"kg"] <- d_10$kg + grad_1015 * 2 
+u_full[w13,"kg"] <- d_10$kg + grad_1015 * 3 
+u_full[w14,"kg"] <- d_10$kg + grad_1015 * 4 
+# have a decline now from 2010 
+ggplot(u_full %>% filter(country == "denmark", source == "animals"), aes(x=year, y = kg)) + geom_line()
+
+
 ### Environment? 
 u_full <- u_full %>%
   pivot_wider(names_from = source, values_from = kg) %>%
@@ -135,6 +159,33 @@ u_full$time <- (u_full$norm_year * 52) + u_full$week
 ggplot(u_full, aes(x=year, y = normalise_kg, group = interaction(country,source))) +
   geom_line(aes(col = source)) +
   facet_wrap(~country, scales = "free") +
-  geom_point(data = u_full)
+  geom_point(data = u_full) + 
+  geom_hline(yintercept = 1) #+ 
+#scale_y_continuous(limits = c(0.95,1))
 
 write.csv(u_full, "data/input_usage.csv") # with environment! 
+
+#### Figure for paper 
+ggplot(u_full, aes(x=year, y = kg, group = interaction(country,source))) +
+  geom_line(aes(col = source)) +
+  facet_wrap(~country, scales = "free") + 
+  scale_x_continuous(limits = c(min_year, 2025))
+
+u_full[which(u_full$country == "denmark"),"country"] <- "Denmark"
+u_full[which(u_full$country == "senegal"),"country"] <- "Senegal"
+u_full[which(u_full$country == "england"),"country"] <- "England"
+
+intro <- as.data.frame(matrix(0,3,2))
+colnames(intro) <- c("country","intro_date")
+intro$country<- c("Denmark","England","Senegal")
+intro$intro_date <- c(2005,2001,2003)
+
+ggplot(u_full, aes(x=year, y = normalise_kg, group = interaction(country,source))) +
+  geom_line(aes(col = source)) +
+  facet_wrap(~country, scales = "free") + 
+  scale_x_continuous(limits = c(min_year, 2025),"Year") + 
+  scale_color_manual("Setting", breaks = c("animals","environ", "humans"),values = c("brown3","cornflowerblue","darkgoldenrod1"), labels = c("Animals", "Environment","Humans")) + 
+  scale_y_continuous("Normalised level (usage_x)") + 
+  geom_vline(data = intro, aes(xintercept = intro_date), lty = "dashed") + 
+  theme(legend.position="bottom")
+ggsave("plots/usage.jpg", width = 10, height = 10)

@@ -48,8 +48,8 @@ AMRmodel <- function(times, init, u, parameters_in){
   pops <- as.data.frame(matrix(0,1+length(times),length(init))) 
   pops <- cbind(c(0,times), pops,parameters_in[16])
   colnames(pops) <- c("time","H","A","E","para")
-  pops[1,] <- c(0,init,parameters_in[16]) # initial conditions
   max_pop <- 100000
+  pops[1,] <- c(0,init*max_pop,parameters_in[16]) # initial conditions
   
   # usage in each environment
   u_humans <- as.numeric(unlist(u %>% filter(source == "humans") %>% pull(normalise_kg)))
@@ -111,45 +111,6 @@ sampling <- function(aaa){
   return(Samples)
 }
 
-###### Model of AMR in Denmark with time varying antibiotic usage
-AMRmodel_DENMARK <- function(time,state,parameters){ #using package deSolve
-  with(as.list(c(state,parameters)),{
-    # Time varying antibiotic usage for Denmark
-    
-    LAMBDA_H_temp_input <- 1
-    
-    if (time<= 2)  {
-      LAMBDA_H_temp <- LAMBDA_H_temp_input* den_use_h[den_use_h$year == round((2000+time),0),]$kg/initial_den_H
-      LAMBDA_A_temp <- LAMBDA_H_temp_input/H_A_ratio_den 
-    } else if ((time>2) & (time<= 3))  {
-      LAMBDA_H_temp <- LAMBDA_H_temp_input* den_use_h[den_use_h$year == round((2000+time),0),]$kg/initial_den_H
-      LAMBDA_A_temp <- (LAMBDA_H_temp_input/H_A_ratio_den)*ratio_den_2003_A
-    } else if ((time>3) & (time<= 15))  {  
-      LAMBDA_H_temp <- LAMBDA_H_temp_input* den_use_h[den_use_h$year == round((2000+time),0),]$kg/initial_den_H
-      LAMBDA_A_temp <- (LAMBDA_H_temp_input/H_A_ratio_den)*ratio_den_2003_A + (time-3)*(((LAMBDA_H_temp_input/H_A_ratio_den)*ratio_den_2015_A - (LAMBDA_H_temp_input/H_A_ratio_den)*ratio_den_2003_A)/(15-3)) 
-    } else if ((time>15) & (time<= 16))  {  
-      LAMBDA_H_temp <- LAMBDA_H_temp_input* den_use_h[den_use_h$year == round((2000+time),0),]$kg/initial_den_H
-      LAMBDA_A_temp <- (LAMBDA_H_temp_input/H_A_ratio_den)*ratio_den_2016_A
-    }  else if ((time>16) & (time<= 18))   { 
-      LAMBDA_H_temp<- LAMBDA_H_temp_input* den_use_h[den_use_h$year == round((2000+time),0),]$kg/initial_den_H
-      LAMBDA_A_temp <- (LAMBDA_H_temp_input/H_A_ratio_den)*ratio_den_2016_A + (time-16)*(((LAMBDA_H_temp_input/H_A_ratio_den)*ratio_den_2018_A - (LAMBDA_H_temp_input/H_A_ratio_den)*ratio_den_2016_A)/(18-16))
-    } else if ((time>18) & (time<= 20))  {
-      LAMBDA_H_temp <- LAMBDA_H_temp_input* den_use_h[den_use_h$year == round((2000+time),0),]$kg/initial_den_H
-      LAMBDA_A_temp <-   (LAMBDA_H_temp_input/H_A_ratio_den)*ratio_den_2018_A + (time-18)*(((LAMBDA_H_temp_input/H_A_ratio_den)*ratio_den_2020_A - (LAMBDA_H_temp_input/H_A_ratio_den)*ratio_den_2018_A)/(20-18)) 
-    } else if ((time> 20))  {
-      LAMBDA_H_temp <- LAMBDA_H_temp_input* den_use_h[den_use_h$year == (2019),]$kg/initial_den_H 
-      LAMBDA_A_temp <- (LAMBDA_H_temp_input/H_A_ratio_den)*ratio_den_2021_A }
-    
-    LAMBDA_H <- LAMBDA_H_temp
-    LAMBDA_A <- LAMBDA_A_temp
-    
-    # Equations governing Human - Animal - Environment interaction 
-    dH <- (1 + LAMBDA_H)*beta_HH*H*(1-H) + (1 + LAMBDA_H)*beta_AH*(1-H)*A + (1 + LAMBDA_H)*beta_EH*(1-H)*E - mu_H*H
-    dA <- (1 + LAMBDA_A)*beta_AA*A*(1-A) + (1 + LAMBDA_A)*beta_HA*(1-A)*H + (1 + LAMBDA_A)*beta_EA*(1-A)*E - mu_A*A
-    dE <-  (1 + LAMBDA_E)*beta_EE*E*(1-E) + (1 + LAMBDA_E)*beta_HE*(1-E)*H + (1 + LAMBDA_E)*beta_AE*(1-E)*A - mu_E*E
-    # print(c(time,LAMBDA_H,LAMBDA_A,LAMBDA_E))
-    return(  list(c(dH,dA,dE)))
-  })}
 
 ### Least squares function 
 LS_simple  <- function(DATA_INPUT, input_country, res.table){
@@ -277,8 +238,8 @@ AMRmodel_interv <- function(times, init, u, new_u, parameters_in){
       params2["beta_EA"] <- parameters_in["beta_EA"]*0.8
     } else if (intervention==13){ # ENGLAND NAP
       params2 <- parameters_in
-      params2["LAMBDA_H"] <- parameters_in["LAMBDA_H"]*0.85
-      params2["LAMBDA_A"] <- parameters_in["LAMBDA_A"]*0.75
+      params2["LAMBDA_H"] <- parameters_in["LAMBDA_H"]*0.95
+      params2["LAMBDA_A"] <- parameters_in["LAMBDA_A"]*0.7
       params2["beta_HH"] <- parameters_in["beta_HH"]*0.8
       params2["beta_HA"] <- parameters_in["beta_HA"]*0.8
       params2["beta_AA"] <- parameters_in["beta_AA"]*0.8

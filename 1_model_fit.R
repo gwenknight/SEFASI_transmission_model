@@ -137,7 +137,6 @@ registerDoParallel(cl)
 clusterExport(cl, c("usage","init_england_year","init_england"))
 clusterEvalQ(cl, library("tidyverse", character.only = TRUE))
 clusterEvalQ(cl, source("0_model_functions.R"))
-#clusterEvalQ(cl, source("plot_functions/explore_and_plot_time_varying_usage.R"))
 
 # Use the parLapply function to run your function in parallel
 output_results <-""

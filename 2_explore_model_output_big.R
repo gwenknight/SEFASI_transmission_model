@@ -34,10 +34,10 @@ for(i in 1:3){
   colnames(FULLDATA) <- c("time", "H", "A", "E", "paraset")
   nruns = length(unique(FULLDATA$paraset))
   FULLDATA$year <- rep(c(init_denmark_year,rep(seq(init_denmark_year+1,2022,1),each = 52)),nruns)}
-  if(i == 2){FULLDATA <-fread("fits/england25300000.csv")[,-1]
+  if(i == 2){FULLDATA <-fread("fits/england109300000.csv")[,-1]
   colnames(FULLDATA) <- c("time", "H", "A", "E", "paraset")
   nruns = length(unique(FULLDATA$paraset))
-  FULLDATA$year <- rep(c(init_england_year,rep(seq(init_england_year+1,2022,1),each = 12)),nruns)}
+  FULLDATA$year <- rep(c(init_england_year,rep(seq(init_england_year+1,2022,1),each = 52)),nruns)}
   if(i == 3){FULLDATA <-fread("fits/senegal98900000.csv")[,-1]
   colnames(FULLDATA) <- c("time", "H", "A", "E", "paraset")
   nruns = length(unique(FULLDATA$paraset))
@@ -118,11 +118,13 @@ FULLDATA <-fread("fits/denmark88500000.csv")[,-1]
 colnames(FULLDATA) <- c("time", "H", "A", "E", "paraset")
 best_100_denmark <- FULLDATA %>% filter(paraset %in% ls_top_den)
 write.csv(best_100_denmark,"output/best_100_denmark.csv")
+rm(FULLDATA)
 
-FULLDATA <-fread("fits/england25300000.csv")[,-1]
+FULLDATA <-fread("fits/england109300000.csv")[,-1]
 colnames(FULLDATA) <- c("time", "H", "A", "E", "paraset")
 best_100_england <- FULLDATA %>% filter(paraset %in% ls_top_eng)
 write.csv(best_100_england,"output/best_100_england.csv")
+rm(FULLDATA)
 
 FULLDATA <-fread("fits/senegal98900000.csv")[,-1]
 colnames(FULLDATA) <- c("time", "H", "A", "E", "paraset")
@@ -149,58 +151,69 @@ write.csv(best_100_para_denmark,"output/best_100_para_denmark.csv")
 ########################################################################################
 ############################################ Visualise fits ############################################
 #### Read in what need
-res.table.fit <- read_csv("data/res.table.fit.csv") %>% mutate(prop = percent / 100)
+source("0_initial_conditions.R")
+res.table <- read_csv("data/res.table.fit.csv") %>% mutate(prop = percent / 100)
+data_fit <- res.table %>% select(country,ctry, var,time,percent) %>% 
+  rename(year = time, name = var) %>%
+  mutate(proportion = percent / 100)
 
 best_100_senegal <- read_csv("output/best_100_senegal.csv")[,-1]
 best_100_denmark <- read_csv("output/best_100_denmark.csv")[,-1]
 best_100_england <- read_csv("output/best_100_england.csv")[,-1]
 
-best <- rbind(best_100_senegal %>% mutate(country = "Senegal", year = rep(c(init_senegal_year,rep(seq(init_senegal_year+1,2022,1),each = 52)),100)),
-              best_100_england %>% mutate(country ="England", year = rep(c(init_england_year,rep(seq(init_england_year+1,2022,1),each = 12)),100)),
-              best_100_denmark %>% mutate(country ="Denmark", year = rep(c(init_denmark_year,rep(seq(init_denmark_year+1,2022,1),each = 52)),100))) %>%
+best <- rbind(best_100_senegal %>% mutate(ctry = "Senegal", year = rep(c(init_senegal_year,rep(seq(init_senegal_year+1,2022,1),each = 52)),100)),
+              best_100_england %>% mutate(ctry ="England", year = rep(c(init_england_year,rep(seq(init_england_year+1,2022,1),each = 52)),100)),
+              best_100_denmark %>% mutate(ctry ="Denmark", year = rep(c(init_denmark_year,rep(seq(init_denmark_year+1,2022,1),each = 52)),100))) %>%
   pivot_longer(cols = c("H","A","E"))
 
-#data_fit <- data_fit %>% rename(country = ctry)
-
-ggplot(best, aes(x=year, y = value, group = interaction(country,paraset))) + 
-  geom_line(aes(col = country)) + 
-  geom_point(data = data_fit,aes(x=year, y = proportion, group = country), col = "black") + 
-  facet_wrap(country~name,ncol = 3) + 
+ggplot(best, aes(x=year, y = value, group = interaction(ctry,paraset))) + 
+  geom_line(aes(col = ctry)) + 
+  facet_wrap(ctry~name,ncol = 3) + 
+  scale_color_manual("Country", breaks = c("England", "Denmark", "Senegal"), values = c("#1b9e77", "#d95f02", "#7570b3")) + 
   scale_y_continuous("Proportion resistant", lim = c(0,1)) + 
-  scale_x_continuous("Year")
+  scale_x_continuous("Year") + 
+  geom_point(data = data_fit,aes(x=year, y = proportion, group = ctry), 
+             col = "black")
+ggsave("plots/model_fits.jpeg")
 
-ggsave("plots/model_fits_0205_nobetalimits_weeks2.pdf")
-
-ggplot(best, aes(x=year, y = value, group = interaction(country,paraset))) + 
-  geom_line(aes(col = country)) + 
-  geom_point(data = data_fit,aes(x=year, y = proportion, group = country), col = "black") + 
-  facet_wrap(name~country,ncol = 3) + 
+ggplot(best, aes(x=year, y = value, group = interaction(ctry,paraset))) + 
+  geom_line(aes(col = ctry)) + 
+  geom_point(data = data_fit,aes(x=year, y = proportion, group = ctry), col = "black") + 
+  facet_wrap(name~ctry,ncol = 3) + 
   scale_y_continuous("Proportion resistant", lim = c(0,1)) + 
-  scale_x_continuous("Year")
+  scale_x_continuous("Year") + 
+  scale_color_manual("Country", breaks = c("England", "Denmark", "Senegal"), values = c("#1b9e77", "#d95f02", "#7570b3")) 
 
-ggsave("plots/model_fits_flip_0205_nobetalimits_weeks2.pdf")
+ggsave("plots/model_fits_flip.jpeg")
 
 
 
 ### Averages
-fits_av <- best %>% group_by(year, country, name) %>%
+fits_av <- best %>% group_by(year, ctry, name) %>%
   summarise(mean = mean(value),
             min025 = quantile(value,probs=c(0.025)), 
             max975 = quantile(value,probs=c(0.975)))
 
-res.table.fit[which(res.table.fit$country == "denmark"),"country"] <- "Denmark"
-res.table.fit[which(res.table.fit$country == "senegal"),"country"] <- "Senegal"
-res.table.fit[which(res.table.fit$country == "england"),"country"] <- "England"
+fits_av[which(fits_av$name == "A"),"name"] <- "Animal"
+fits_av[which(fits_av$name == "H"),"name"] <- "Human"
+fits_av[which(fits_av$name == "E"),"name"] <- "Environment"
+
+data_fit[which(data_fit$name == "A"),"name"] <- "Animal"
+data_fit[which(data_fit$name == "H"),"name"] <- "Human"
+data_fit[which(data_fit$name == "E"),"name"] <- "Environment"
 
 g1 <- ggplot(fits_av, aes(x=year, y = mean)) + 
   geom_point() + 
   geom_errorbar(aes(ymin = min025, ymax = max975)) + 
-  geom_point(data = res.table.fit %>% rename(name = var), aes(x=time, y = percent/100, col = country)) + 
-  facet_grid(country ~ name) + 
+  geom_point(data = data_fit, aes(x=year, y = percent/100, col = ctry), size = 2.5) + 
+  facet_grid(ctry ~ name) + 
   guides(col="none") + 
   scale_y_continuous("Proportion resistance (over top 100 fits)") + 
-  scale_x_continuous("Year")
-ggsave("plots/fits_mean_quantile.pdf")
+  scale_x_continuous("Year") + 
+  scale_color_manual(breaks = c("England", "Denmark", "Senegal"), values = c("#1b9e77", "#d95f02", "#7570b3")) 
+
+ggsave("plots/fig2.jpeg", width = 10, height = 5)
+
 
 ############# Visualise parameter outputs
 best_100_para_senegal <- read_csv("output/best_100_para_senegal.csv")[,-1]
@@ -214,28 +227,31 @@ best_para <- rbind(best_100_para_senegal,
                    best_100_para_england,
                    best_100_para_denmark)
 
-g2 <- ggplot(best_para %>% pivot_longer(cols = "LAMBDA_H":"mu_E"), 
+g2a <- ggplot(best_para %>% pivot_longer(cols = "LAMBDA_H":"mu_E"), 
              aes(x=ctry, y = value)) + 
-  geom_violin(aes(fill=ctry),alpha = 0.2) +
+  geom_violin(aes(fill=ctry),alpha = 0.4) +
   facet_wrap(~name, scales = "free", nrow = 3) + 
   scale_x_discrete("", labels = c("","","")) + 
   scale_y_continuous("Best fit distribution") + 
-  scale_fill_discrete("Country")
-ggsave("plots/best_paras.pdf")
+  scale_fill_manual("Country",breaks = c("England", "Denmark", "Senegal"), values = c("#1b9e77", "#d95f02", "#7570b3")) 
+ggsave("plots/best_paras_0705.pdf")
 
-g1 + g2
-ggsave("plots/fig1.pdf", width = 20, height = 10)
 
 ### What about the beta parameters? 
-ggplot(best_para, aes(x=beta_HH, y = beta_AA)) + geom_boxplot(aes(col = ctry))
-ggplot(best_para, aes(x=beta_HH, y = beta_EE)) + geom_boxplot(aes(col = ctry))
-ggplot(best_para, aes(x=beta_EE, y = beta_AA)) + geom_boxplot(aes(col = ctry))
+g1 <- ggplot(best_para, aes(x=beta_HH, y = beta_AA, group = ctry)) + geom_point(aes(col = ctry)) + geom_smooth(method = lm, formula = y~x, aes(col = ctry, fill = ctry), alpha = 0.2) + scale_color_manual(breaks = c("England", "Denmark", "Senegal"), values = c("#1b9e77", "#d95f02", "#7570b3")) + scale_fill_manual(breaks = c("England", "Denmark", "Senegal"), values = c("#1b9e77", "#d95f02", "#7570b3")) 
+g2 <- ggplot(best_para, aes(x=beta_HH, y = beta_EE, group = ctry)) + geom_point(aes(col = ctry)) + geom_smooth(method = lm, formula = y~x, aes(col = ctry, fill = ctry), alpha = 0.2) + scale_color_manual(breaks = c("England", "Denmark", "Senegal"), values = c("#1b9e77", "#d95f02", "#7570b3")) + scale_fill_manual(breaks = c("England", "Denmark", "Senegal"), values = c("#1b9e77", "#d95f02", "#7570b3")) 
+g3 <- ggplot(best_para, aes(x=beta_EE, y = beta_AA, group = ctry)) + geom_point(aes(col = ctry)) + geom_smooth(method = lm, formula = y~x, aes(col = ctry, fill = ctry), alpha = 0.2) + scale_color_manual(breaks = c("England", "Denmark", "Senegal"), values = c("#1b9e77", "#d95f02", "#7570b3")) + scale_fill_manual(breaks = c("England", "Denmark", "Senegal"), values = c("#1b9e77", "#d95f02", "#7570b3")) 
 
-cor(numeric_vars, use = "pairwise.complete.obs")
+g1 + g3 + g2 + guide_area() + plot_layout(guides = "collect")
+ggsave("plots/beta_xx_para.pdf")
+#cor(numeric_vars, use = "pairwise.complete.obs")
 
-g1 <- ggcorrplot(tl.cex = 7,type = "lower",cor(best_para[which(best_para$ctry == "senegal"),1:15],use = "pairwise.complete.obs")) + ggtitle("Senegal")
-g2 <- ggcorrplot(tl.cex = 7,type = "lower",cor(best_para[which(best_para$ctry == "denmark"),1:15],use = "pairwise.complete.obs")) + ggtitle("Denmark")
-g3 <- ggcorrplot(tl.cex = 7,type = "lower",cor(best_para[which(best_para$ctry == "england"),1:15],use = "pairwise.complete.obs")) + ggtitle("England")
+g1 <- ggcorrplot(tl.cex = 7,type = "lower",cor(best_para[which(best_para$ctry == "Senegal"),1:15],use = "pairwise.complete.obs")) + ggtitle("Senegal") 
+g2 <- ggcorrplot(tl.cex = 7,type = "lower",cor(best_para[which(best_para$ctry == "Denmark"),1:15],use = "pairwise.complete.obs")) + ggtitle("Denmark")
+g3 <- ggcorrplot(tl.cex = 7,type = "lower",cor(best_para[which(best_para$ctry == "England"),1:15],use = "pairwise.complete.obs")) + ggtitle("England")
 
-g1 + g2 + g3 + guide_area() + plot_layout(guides = "collect")
-ggsave("plots/correlation_para.pdf")
+p <- g1 + g2 + g3 + guide_area() + plot_layout(guides = "collect")
+ggsave("plots/correlation_para.jpeg")
+
+( g2a | p ) + plot_annotation(tag_levels = 'A')
+ggsave("plots/fig3.jpeg", width = 18, height = 7)

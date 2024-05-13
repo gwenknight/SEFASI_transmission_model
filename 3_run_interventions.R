@@ -12,6 +12,7 @@ library(data.table)
 library(parallel)
 library(doParallel)
 library(patchwork)
+library(here)
 setwd(here())
 theme_set(theme_bw())
 
@@ -135,9 +136,9 @@ stopCluster(cl)
 ############################################################################################################################################
 ##################################################################################################################################
 ########## EXPLORE outputs 
-interv_senegal <- read.csv("fits_interv/senegal207690.csv")[,-1]
-interv_england <- read.csv("fits_interv/england229530.csv")[,-1]
-interv_denmark <- read.csv("fits_interv/denmark185850.csv")[,-1]
+interv_senegal <- read.csv("fits_interv/senegal2076900.csv")[,-1]
+interv_england <- read.csv("fits_interv/england2295300.csv")[,-1]
+interv_denmark <- read.csv("fits_interv/denmark1858500.csv")[,-1]
 interv_senegal$country <- "senegal"
 interv_england$country <- "england"
 interv_denmark$country <- "denmark"
@@ -152,13 +153,29 @@ interv_rel <- left_join(interv %>% filter(interven > 0), interv_0) %>%
          diffA = A0 - A,
          diffE = E0 - E)
 
+interv_rel[which(interv_rel$country == "denmark"),"country"] <- "Denmark"
+interv_rel[which(interv_rel$country == "senegal"),"country"] <- "Senegal"
+interv_rel[which(interv_rel$country == "england"),"country"] <- "England"
+
+
+
+
 # After 5 yrs, how has resistance change? diff = absolute proportion. Perc = percentage reduction 
-interv_rel_5yr <- interv_rel %>% filter(time == 5 * 52) %>% rowwise() %>% 
+interv_rel_5yr <- interv_rel %>% filter(time > 259) %>%  #filter(time == 5 * 52) %>% 
+  rowwise() %>% 
   mutate(percH = 100 * diffH/H0,
          percA = 100 * diffA/A0,
-         percE = 100 * diffE/E0)
+         percE = 100 * diffE/E0) 
 # Can do a total? what does this mean? 
 #interv_rel_tot <- interv_rel %>% group_by(para, interven, country) %>% summarise(sum(diff))
+
+# Only one that is negative is Senegal package = interven 14
+iii <- interv_rel_5yr %>% filter(percH < 0) 
+unique(iii$interven)
+interv_rel_5yr <- interv_rel_5yr %>% 
+  mutate(percH_n = ifelse(percH < 0, 0, NA),
+         percA_n = ifelse(percA < 0, 0, NA),
+         percE_n = ifelse(percE < 0, 0, NA))
 
 ######### 
 intervention_names <- c("H abx to zero","A abx to zero", "E. abx to zero",
@@ -169,19 +186,38 @@ intervention_names <- c("H abx to zero","A abx to zero", "E. abx to zero",
                         "Farm target","H target","E target",
                         "A-H spread down 50%","Spread down 50%","Abx down 50%")
 
+
+## Explore stability after 5 yrs 
+ggplot(interv_rel %>% filter(para %in% c(14,186), 
+                             interven %in% c(16,20)), 
+       aes(x=time, y = H, group = interven)) + 
+  geom_line(aes(col = factor(interven))) + 
+  facet_wrap(~country, scales = "free") + 
+  scale_color_discrete(breaks = c(16,20), 
+                       labels = intervention_names[c(16,20)],"Interventions")
+
+ggplot(interv_rel %>% filter(para %in% c(14,186), interven > 11), 
+       aes(x=time, y = H, group = interven)) + 
+  geom_line(aes(col = factor(interven))) + 
+  facet_wrap(~country, scales = "free") + 
+  scale_color_discrete(breaks = seq(12,20,1), 
+                     labels = intervention_names[12:20],"Interventions")
+ggsave("plots/time_trace_eg_interventions_H.pdf")
+
+
 ggplot(interv_rel_5yr, aes(x=interven, y = diffH, group = interven)) + 
   ggtitle("Difference at 5yrs in humans") + 
   geom_boxplot(aes(fill = factor(interven))) + 
   facet_wrap(~country,ncol = 1) + 
   scale_x_continuous(breaks = seq(1,20,1), labels = intervention_names,"Interventions") + 
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + 
-  scale_fill_manual(values = c("pink","pink","pink", # abx targe
-                               "lightblue","lightblue","lightblue", # spread targe
-                               "lightblue","lightblue","lightblue",
-                               "lightblue","lightblue",
-                               "lightyellow","lightyellow","lightyellow",# mix
-                               "lightyellow","lightyellow","lightyellow",
-                               "lightblue","lightblue","pink")) + 
+  scale_fill_manual(values = c("darkslategray","darkslategray","darkslategray", # abx targe
+                               "lightgreen","lightgreen","lightgreen", # spread targe
+                               "lightgreen","lightgreen","lightgreen",
+                               "lightgreen","lightgreen",
+                               "chartreuse4","chartreuse4","chartreuse4",# mix
+                               "chartreuse4","chartreuse4","chartreuse4",
+                               "lightgreen","lightgreen","darkslategray")) + 
   coord_flip() + 
   geom_hline(yintercept = 0) + 
   theme(legend.position = "none") + 
@@ -194,32 +230,48 @@ gi1 <- ggplot(interv_rel_5yr %>% filter(interven>11), aes(x=interven, y = diffH,
   facet_wrap(~country,ncol = 1) + 
   scale_x_continuous(breaks = seq(12,20,1), labels = intervention_names[12:20],"Interventions") + 
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + 
-  scale_fill_manual(values = c("lightyellow","lightyellow","lightyellow",# mix
-                               "lightyellow","lightyellow","lightyellow",
-                               "lightblue","lightblue","pink")) + 
+  scale_fill_manual(values = c("chartreuse4","chartreuse4","chartreuse4",# mix
+                               "chartreuse4","chartreuse4","chartreuse4",
+                               "lightgreen","lightgreen","darkslategray")) + 
   coord_flip() + 
   geom_hline(yintercept = 0) + 
   theme(legend.position = "none") + 
   scale_y_continuous("Absolute difference in proportion resistant at 5yrs")
-ggsave("plots/interv_in_paper_H.pdf")
+ggsave("plots/ab_diff.jpeg")
 
 gi2 <- ggplot(interv_rel_5yr %>% filter(interven>11), aes(x=interven, y = percH, group = interven)) + 
   geom_boxplot(aes(fill = factor(interven))) + 
- # ggtitle("Difference at 5yrs in humans") + 
+  # ggtitle("Difference at 5yrs in humans") + 
   facet_wrap(~country,ncol = 1) + 
   scale_x_continuous(breaks = seq(12,20,1), labels = intervention_names[12:20],"Interventions") + 
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + 
-  scale_fill_manual(values = c("lightyellow","lightyellow","lightyellow",# mix
-                               "lightyellow","lightyellow","lightyellow",
-                               "lightblue","lightblue","pink")) + 
+  scale_fill_manual(values = c("chartreuse4","chartreuse4","chartreuse4",# mix
+                               "chartreuse4","chartreuse4","chartreuse4",
+                               "lightgreen","lightgreen","darkslategray")) + 
   coord_flip() + 
-  geom_hline(yintercept = 100) + 
+  geom_hline(yintercept = c(0,100)) + 
   theme(legend.position = "none") + 
   scale_y_continuous("Percentage reduction in proportion resistant at 5yrs")
-ggsave("plots/interv_in_paper_Hperc.pdf")
+ggsave("plots/interv_in_paper_Hperc_supp.pdf")
 
-gi1 + gi2 
-ggsave("plots/fig2.pdf", width = 12, height = 7)
+gi2 <- ggplot(interv_rel_5yr %>% filter(interven>11), aes(x=interven, y = percH, group = interven)) + 
+  geom_boxplot(aes(fill = factor(interven))) + 
+  # ggtitle("Difference at 5yrs in humans") + 
+  facet_wrap(~country,ncol = 1) + 
+  scale_x_continuous(breaks = seq(12,20,1), labels = intervention_names[12:20],"Interventions") + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + 
+  scale_fill_manual(values = c("chartreuse4","chartreuse4","chartreuse4",# mix
+                               "chartreuse4","chartreuse4","chartreuse4",
+                               "lightgreen","lightgreen","darkslategray")) + 
+  coord_flip() + 
+  geom_hline(yintercept = c(0,100)) + 
+  theme(legend.position = "none") + 
+  scale_y_continuous("Percentage reduction in proportion resistant at 5yrs",limits = c(-0.01,100)) + 
+  geom_point(data = interv_rel_5yr %>% filter(!is.na(percH_n)), aes(x = interven, y = percH_n), pch = "*", size = 6)
+ggsave("plots/interv_in_paper_Hperc_.pdf")
+
+gi1 + gi2 + plot_annotation(tag_levels = "A")
+ggsave("plots/fig4.jpeg", width = 12, height = 7)
 
 ### Animals
 ggplot(interv_rel_5yr %>% filter(interven>11), aes(x=interven, y = diffA, group = interven)) + 
@@ -228,9 +280,9 @@ ggplot(interv_rel_5yr %>% filter(interven>11), aes(x=interven, y = diffA, group 
   facet_wrap(~country,ncol = 1) + 
   scale_x_continuous(breaks = seq(12,20,1), labels = intervention_names[12:20],"Interventions") + 
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + 
-  scale_fill_manual(values = c("lightyellow","lightyellow","lightyellow",# mix
-                               "lightyellow","lightyellow","lightyellow",
-                               "lightblue","lightblue","pink")) + 
+  scale_fill_manual(values = c("chartreuse4","chartreuse4","chartreuse4",# mix
+                               "chartreuse4","chartreuse4","chartreuse4",
+                               "lightgreen","lightgreen","darkslategray")) + 
   coord_flip() + 
   geom_hline(yintercept = 0) + 
   theme(legend.position = "none") + 
@@ -243,9 +295,9 @@ ggplot(interv_rel_5yr %>% filter(interven>11), aes(x=interven, y = percA, group 
   facet_wrap(~country,ncol = 1) + 
   scale_x_continuous(breaks = seq(12,20,1), labels = intervention_names[12:20],"Interventions") + 
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + 
-  scale_fill_manual(values = c("lightyellow","lightyellow","lightyellow",# mix
-                               "lightyellow","lightyellow","lightyellow",
-                               "lightblue","lightblue","pink")) + 
+  scale_fill_manual(values = c("chartreuse4","chartreuse4","chartreuse4",# mix
+                               "chartreuse4","chartreuse4","chartreuse4",
+                               "lightgreen","lightgreen","darkslategray")) + 
   coord_flip() + 
   geom_hline(yintercept = 0) + 
   theme(legend.position = "none") + 
@@ -259,9 +311,9 @@ ggplot(interv_rel_5yr %>% filter(interven>11), aes(x=interven, y = diffE, group 
   facet_wrap(~country,ncol = 1) + 
   scale_x_continuous(breaks = seq(12,20,1), labels = intervention_names[12:20],"Interventions") + 
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + 
-  scale_fill_manual(values = c("lightyellow","lightyellow","lightyellow",# mix
-                               "lightyellow","lightyellow","lightyellow",
-                               "lightblue","lightblue","pink")) + 
+  scale_fill_manual(values = c("chartreuse4","chartreuse4","chartreuse4",# mix
+                               "chartreuse4","chartreuse4","chartreuse4",
+                               "lightgreen","lightgreen","darkslategray")) + 
   coord_flip() + 
   geom_hline(yintercept = 0) + 
   theme(legend.position = "none") + 
@@ -274,14 +326,16 @@ ggplot(interv_rel_5yr %>% filter(interven>11), aes(x=interven, y = percE, group 
   facet_wrap(~country,ncol = 1) + 
   scale_x_continuous(breaks = seq(12,20,1), labels = intervention_names[12:20],"Interventions") + 
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + 
-  scale_fill_manual(values = c("lightyellow","lightyellow","lightyellow",# mix
-                               "lightyellow","lightyellow","lightyellow",
-                               "lightblue","lightblue","pink")) + 
+  scale_fill_manual(values = c("chartreuse4","chartreuse4","chartreuse4",# mix
+                               "chartreuse4","chartreuse4","chartreuse4",
+                               "lightgreen","lightgreen","darkslategray")) + 
   coord_flip() + 
   geom_hline(yintercept = 0) + 
   theme(legend.position = "none") + 
   scale_y_continuous("Percentage reduction in proportion resistant at 5yrs")
 ggsave("plots/interv_in_paper_Eperc.pdf")
+
+
 
 
 

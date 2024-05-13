@@ -24,7 +24,7 @@ res.data %>% filter(country == "england") %>% select(time, percent, var) %>%
   filter(value_min > -100)
 # 2001 at 1.2 for resistance in H: others all at zero
 init_england <- c(0.012, 0, 0)
-init_england_year <- 2001
+init_england_year <- 2001 
 
 # Denmark
 res.data %>% filter(country == "denmark") %>% select(time, percent, var) %>%
