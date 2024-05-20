@@ -162,16 +162,9 @@ ggplot(interv_rel_5yr %>% filter(interven > 20), aes(x=interven, y = diffH, grou
   scale_x_continuous(breaks = c(21,22,23), 
                      labels = intervention_names[c(21,22,23)],"Interventions") + 
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + 
-  scale_fill_manual(values = c("darkslategray","darkslategray","darkslategray", # abx targe
-                               "lightgreen","lightgreen","lightgreen", # spread targe
-                               "lightgreen","lightgreen","lightgreen",
-                               "lightgreen","lightgreen",
-                               "chartreuse4","chartreuse4","chartreuse4",# mix
-                               "chartreuse4","chartreuse4","chartreuse4",
-                               "lightgreen","lightgreen","darkslategray",
-                               "lightgreen","lightgreen","lightgreen")) + 
+  scale_fill_manual(breaks = seq(21,23,1), values = c("lightgreen","lightgreen","lightgreen")) + 
   coord_flip() + 
   geom_hline(yintercept = 0) + 
   theme(legend.position = "none") + 
   scale_y_continuous("Absolute difference in proportion resistant at 5yrs")
-ggsave("plots/sens_spread_para_reduction.pdf")
+ggsave("plots/sens_spread_para_reduction.jpeg")
