@@ -176,9 +176,9 @@ AMRmodel_interv <- function(times, init, u, new_u, parameters_in){
   # Initial conditions now
   init_new <- tail(A,1)
   # Store
-  Store_A <- matrix(0,dim(A)[1]*21,6)
+  Store_A <- matrix(0,dim(A)[1]*24,6)
 
-  for(intervention in 0:20){ # 20 interventions
+  for(intervention in 0:23){ # 23 interventions
 
     names(parameters_in) <- c("LAMBDA_H","LAMBDA_A","LAMBDA_E","beta_HH","beta_AA","beta_EE","beta_AH",
                               "beta_HA","beta_EH","beta_EA","beta_AE","beta_HE","mu_H","mu_A","mu_E","para")
@@ -226,16 +226,8 @@ AMRmodel_interv <- function(times, init, u, new_u, parameters_in){
       #DENMARK NAP
       params2 <- parameters_in
       params2["LAMBDA_H"] <- parameters_in["LAMBDA_H"]*0.9
-      params2["LAMBDA_A"] <- parameters_in["LAMBDA_A"]*0.8
-      params2["beta_HH"] <- parameters_in["beta_HH"]*0.8
-      params2["beta_HA"] <- parameters_in["beta_HA"]*0.8
-      params2["beta_AA"] <- parameters_in["beta_AA"]*0.8
-      params2["beta_AH"] <- parameters_in["beta_AH"]*0.8
-      params2["beta_EE"] <- parameters_in["beta_EE"]*0.8
-      params2["beta_EH"] <- parameters_in["beta_EH"]*0.8
-      params2["beta_HE"] <- parameters_in["beta_HE"]*0.8
-      params2["beta_AE"] <- parameters_in["beta_AE"]*0.8
-      params2["beta_EA"] <- parameters_in["beta_EA"]*0.8
+      params2["LAMBDA_A"] <- parameters_in["LAMBDA_A"]*0.95
+      params2["beta_AH"] <- parameters_in["beta_AH"]*0.9
     } else if (intervention==13){ # ENGLAND NAP
       params2 <- parameters_in
       params2["LAMBDA_H"] <- parameters_in["LAMBDA_H"]*0.95
@@ -300,6 +292,39 @@ AMRmodel_interv <- function(times, init, u, new_u, parameters_in){
       params2["LAMBDA_H"] <- parameters_in["LAMBDA_H"]*0.5
       params2["LAMBDA_A"] <- parameters_in["LAMBDA_A"]*0.5
       params2["LAMBDA_E"] <- parameters_in["LAMBDA_E"]*0.5
+    }else if (intervention==21){ # TRANSMISSION 30%
+      params2 <- parameters_in
+      params2["beta_HH"] <- parameters_in["beta_HH"]*0.7
+      params2["beta_HA"] <- parameters_in["beta_HA"]*0.7
+      params2["beta_AA"] <- parameters_in["beta_AA"]*0.7
+      params2["beta_AH"] <- parameters_in["beta_AH"]*0.7
+      params2["beta_EE"] <- parameters_in["beta_EE"]*0.7
+      params2["beta_EH"] <- parameters_in["beta_EH"]*0.7
+      params2["beta_HE"] <- parameters_in["beta_HE"]*0.7
+      params2["beta_AE"] <- parameters_in["beta_AE"]*0.7
+      params2["beta_EA"] <- parameters_in["beta_EA"]*0.7
+    }else if (intervention==22){ # TRANSMISSION 20%
+      params2 <- parameters_in
+      params2["beta_HH"] <- parameters_in["beta_HH"]*0.8
+      params2["beta_HA"] <- parameters_in["beta_HA"]*0.8
+      params2["beta_AA"] <- parameters_in["beta_AA"]*0.8
+      params2["beta_AH"] <- parameters_in["beta_AH"]*0.8
+      params2["beta_EE"] <- parameters_in["beta_EE"]*0.8
+      params2["beta_EH"] <- parameters_in["beta_EH"]*0.8
+      params2["beta_HE"] <- parameters_in["beta_HE"]*0.8
+      params2["beta_AE"] <- parameters_in["beta_AE"]*0.8
+      params2["beta_EA"] <- parameters_in["beta_EA"]*0.8
+    }else if (intervention==23){ # TRANSMISSION 10%
+      params2 <- parameters_in
+      params2["beta_HH"] <- parameters_in["beta_HH"]*0.9
+      params2["beta_HA"] <- parameters_in["beta_HA"]*0.9
+      params2["beta_AA"] <- parameters_in["beta_AA"]*0.9
+      params2["beta_AH"] <- parameters_in["beta_AH"]*0.9
+      params2["beta_EE"] <- parameters_in["beta_EE"]*0.9
+      params2["beta_EH"] <- parameters_in["beta_EH"]*0.9
+      params2["beta_HE"] <- parameters_in["beta_HE"]*0.9
+      params2["beta_AE"] <- parameters_in["beta_AE"]*0.9
+      params2["beta_EA"] <- parameters_in["beta_EA"]*0.9
     }
 
     # Run with new parameter set 

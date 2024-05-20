@@ -226,6 +226,7 @@ best_100_para_denmark$ctry <- "Denmark"
 best_para <- rbind(best_100_para_senegal,
                    best_100_para_england,
                    best_100_para_denmark)
+write.csv(best_para, "output/best_para.csv")
 
 g2a <- ggplot(best_para %>% pivot_longer(cols = "LAMBDA_H":"mu_E"), 
              aes(x=ctry, y = value)) + 
@@ -253,5 +254,5 @@ g3 <- ggcorrplot(tl.cex = 7,type = "lower",cor(best_para[which(best_para$ctry ==
 p <- g1 + g2 + g3 + guide_area() + plot_layout(guides = "collect")
 ggsave("plots/correlation_para.jpeg")
 
-( g2a | p ) + plot_annotation(tag_levels = 'A')
-ggsave("plots/fig3.jpeg", width = 18, height = 7)
+( g2a | p ) + plot_annotation(tag_levels = 'A') +  plot_layout(widths = c(3.5, 2.5))
+ggsave("plots/fig3.jpeg", width = 16, height = 7)
