@@ -176,9 +176,9 @@ AMRmodel_interv <- function(times, init, u, new_u, parameters_in){
   # Initial conditions now
   init_new <- tail(A,1)
   # Store
-  Store_A <- matrix(0,dim(A)[1]*24,6)
+  Store_A <- matrix(0,dim(A)[1]*25,6)
 
-  for(intervention in 0:23){ # 23 interventions
+  for(intervention in 0:24){ # 24 interventions
 
     names(parameters_in) <- c("LAMBDA_H","LAMBDA_A","LAMBDA_E","beta_HH","beta_AA","beta_EE","beta_AH",
                               "beta_HA","beta_EH","beta_EA","beta_AE","beta_HE","mu_H","mu_A","mu_E","para")
@@ -325,6 +325,9 @@ AMRmodel_interv <- function(times, init, u, new_u, parameters_in){
       params2["beta_HE"] <- parameters_in["beta_HE"]*0.9
       params2["beta_AE"] <- parameters_in["beta_AE"]*0.9
       params2["beta_EA"] <- parameters_in["beta_EA"]*0.9
+    }else if (intervention==24){ # JUST ANIMAL USE in ANIMALS
+      params2 <- parameters_in
+      params2["LAMBDA_A"] <- parameters_in["LAMBDA_A"]*0.3
     }
 
     # Run with new parameter set 
