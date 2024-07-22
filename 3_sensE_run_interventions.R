@@ -3,6 +3,7 @@
 ################################  SEFASI transmission model #####################################
 ################################# Run the interventions on the best fitting parameter sets #################################
 ################################# EXCLUDING ENVIRONMENT FROM MODEL FIT #######################
+################################# OR INCLUDING TRANSMISSION CHANGE PROXY AHHA #######################
 ################################# Ross Booton & Gwen Knight #####################################
 ################################## May 2024 #####################################
 ###################################################################################
@@ -16,6 +17,10 @@ library(patchwork)
 library(here)
 setwd(here())
 theme_set(theme_bw())
+
+##### what sensitivity analysis are you running? 
+sens = "sensE" # not fitting to environmental data
+sens = "senstahha" # including transmission changing ahha parameters 
 
 ## Functions
 source("0_model_functions.R")
@@ -51,9 +56,9 @@ colnames(new_usage) <- colnames(usage)[1:dim(new_usage)[2]]
 #ggplot(new_usage, aes(x=year, y = normalise_kg, group = interaction(source,country))) + geom_line(aes(col = country))
 
 ######### run interventions
-best_100_para_senegal <- as.matrix(read.csv("output/sensE_best_100_para_senegal.csv"))[,-1]
-best_100_para_england <- as.matrix(read.csv("output/sensE_best_100_para_england.csv"))[,-1]
-best_100_para_denmark <- as.matrix(read.csv("output/sensE_best_100_para_denmark.csv"))[,-1]
+best_100_para_senegal <- as.matrix(read.csv(paste0("output/",sens,"_best_100_para_senegal.csv")))[,-1]
+best_100_para_england <- as.matrix(read.csv(paste0("output/",sens,"_best_100_para_england.csv")))[,-1]
+best_100_para_denmark <- as.matrix(read.csv(paste0("output/",sens,"_best_100_para_denmark.csv")))[,-1]
 
 nc = detectCores()
 ### SENEGAL 
@@ -77,7 +82,7 @@ output_results <- parLapply(cl, split(best_100_para_senegal, row(best_100_para_s
 output_matrix <- do.call(rbind, output_results)
 
 # Save them 
-write.csv(output_matrix, paste0("fits_interv/sensE_","senegal",dim(output_matrix)[1],".csv"))
+write.csv(output_matrix, paste0("fits_interv/",sens,"_senegal",dim(output_matrix)[1],".csv"))
 
 # Stop the cluster
 stopCluster(cl)
@@ -103,7 +108,7 @@ output_results <- parLapply(cl, split(best_100_para_denmark, row(best_100_para_d
 output_matrix <- do.call(rbind, output_results)
 
 # Save them 
-write.csv(output_matrix, paste0("fits_interv/sensE_","denmark",dim(output_matrix)[1],".csv"))
+write.csv(output_matrix, paste0("fits_interv/",sens,"_denmark",dim(output_matrix)[1],".csv"))
 
 # Stop the cluster
 stopCluster(cl)
@@ -129,7 +134,7 @@ output_results <- parLapply(cl, split(best_100_para_england, row(best_100_para_e
 output_matrix <- do.call(rbind, output_results)
 
 # Save them 
-write.csv(output_matrix, paste0("fits_interv/sensE_","england",dim(output_matrix)[1],".csv"))
+write.csv(output_matrix, paste0("fits_interv/",sens,"_england",dim(output_matrix)[1],".csv"))
 
 # Stop the cluster
 stopCluster(cl)
@@ -137,9 +142,9 @@ stopCluster(cl)
 ############################################################################################################################################
 ##################################################################################################################################
 ########## EXPLORE outputs 
-interv_senegal <- read.csv("fits_interv/sensE_senegal2472500.csv")[,-1]
-interv_england <- read.csv("fits_interv/sensE_england2732500.csv")[,-1]
-interv_denmark <- read.csv("fits_interv/sensE_denmark2212500.csv")[,-1]
+interv_senegal <- read.csv(paste0("fits_interv/",sens,"_senegal2472500.csv"))[,-1]
+interv_england <- read.csv(paste0("fits_interv/",sens,"_england2732500.csv"))[,-1]
+interv_denmark <- read.csv(paste0("fits_interv/",sens,"_denmark2212500.csv"))[,-1]
 interv_senegal$country <- "senegal"
 interv_england$country <- "england"
 interv_denmark$country <- "denmark"
@@ -157,7 +162,7 @@ interv_rel <- left_join(interv %>% filter(interven > 0), interv_0) %>%
 interv_rel[which(interv_rel$country == "denmark"),"country"] <- "Denmark"
 interv_rel[which(interv_rel$country == "senegal"),"country"] <- "Senegal"
 interv_rel[which(interv_rel$country == "england"),"country"] <- "England"
-write.csv(interv_rel,"output/sensE_interv_rel.csv")
+write.csv(interv_rel,paste0("output/",sens,"_interv_rel.csv"))
 
 
 
@@ -205,7 +210,7 @@ ggplot(interv_rel %>% filter(para %in% c(14,186), interven %in%  c(seq(12,20,1),
   facet_wrap(~country, scales = "free") + 
   scale_color_discrete(breaks =  c(seq(12,20,1),24), 
                        labels = intervention_names[c(12:20,24)],"Interventions")
-ggsave("plots/sensE_time_trace_eg_interventions_H.pdf")
+ggsave(paste0("plots/",sens,"_time_trace_eg_interventions_H.pdf"))
 
 
 ggplot(interv_rel_5yr, aes(x=interven, y = diffH, group = interven)) + 
@@ -227,7 +232,7 @@ ggplot(interv_rel_5yr, aes(x=interven, y = diffH, group = interven)) +
   geom_hline(yintercept = 0) + 
   theme(legend.position = "none") + 
   scale_y_continuous("Absolute difference in proportion resistant at 5yrs")
-ggsave("plots/sensE_all_interventions_H.pdf")
+ggsave(paste0("plots/",sens,"_all_interventions_H.pdf"))
 
 gi1 <- ggplot(interv_rel_5yr %>% filter(interven %in% c(seq(12,20,1),24)), aes(x=factor(interven), y = diffH, group = interven)) + 
   geom_boxplot(aes(fill = factor(interven))) + 
@@ -243,7 +248,7 @@ gi1 <- ggplot(interv_rel_5yr %>% filter(interven %in% c(seq(12,20,1),24)), aes(x
   geom_hline(yintercept = 0) + 
   theme(legend.position = "none") + 
   scale_y_continuous("Absolute difference in proportion resistant at 5yrs")
-ggsave("plots/sensE_ab_diff.jpeg")
+ggsave(paste0("plots/",sens,"_ab_diff.jpeg"))
 
 gi2 <- ggplot(interv_rel_5yr %>% filter(interven%in%  c(seq(12,20,1),24)), aes(x = factor(interven), y = percH, group = interven)) + 
   geom_boxplot(aes(fill = factor(interven))) + 
@@ -259,7 +264,7 @@ gi2 <- ggplot(interv_rel_5yr %>% filter(interven%in%  c(seq(12,20,1),24)), aes(x
   geom_hline(yintercept = c(0,100)) + 
   theme(legend.position = "none") + 
   scale_y_continuous("Percentage reduction in proportion resistant at 5yrs")
-ggsave("plots/sensE_interv_in_paper_Hperc_supp.pdf")
+ggsave(paste0("plots/",sens,"_interv_in_paper_Hperc_supp.pdf"))
 
 gi2 <- ggplot(interv_rel_5yr %>% filter(interven%in%  c(seq(12,20,1),24)), aes(x = factor(interven), y = percH, group = interven)) + 
   geom_boxplot(aes(fill = factor(interven))) + 
@@ -275,11 +280,12 @@ gi2 <- ggplot(interv_rel_5yr %>% filter(interven%in%  c(seq(12,20,1),24)), aes(x
   geom_hline(yintercept = c(0,100)) + 
   theme(legend.position = "none") + 
   scale_y_continuous("Percentage reduction in proportion resistant at 5yrs",limits = c(-0.01,100)) + 
-  geom_point(data = interv_rel_5yr %>% filter(!is.na(percH_n)), aes(x = factor(interven), y = percH_n), pch = "*", size = 6)
-ggsave("plots/sensE_interv_in_paper_Hperc_.pdf")
+  geom_point(data = interv_rel_5yr %>% filter(interven%in%  c(seq(12,20,1),24), !is.na(percH_n)) %>% group_by(country) %>% slice(1), 
+             aes(x = factor(interven), y = percH_n), pch = "*", size = 6)
+ggsave(paste0("plots/",sens,"_interv_in_paper_Hperc_.pdf"))
 
 gi1 + gi2 + plot_annotation(tag_levels = "A")
-ggsave("plots/sensE_fig4.jpeg", width = 12, height = 7)
+ggsave(paste0("plots/",sens,"_fig4.jpeg"), width = 12, height = 7)
 
 ### Animals
 ggplot(interv_rel_5yr %>% filter(interven%in% c(seq(12,20,1),24)), aes(x = factor(interven), y = diffA, group = interven)) + 
@@ -296,7 +302,7 @@ ggplot(interv_rel_5yr %>% filter(interven%in% c(seq(12,20,1),24)), aes(x = facto
   geom_hline(yintercept = 0) + 
   theme(legend.position = "none") + 
   scale_y_continuous("Absolute difference in proportion resistant at 5yrs")
-ggsave("plots/sensE_interv_in_paper_A.pdf")
+ggsave(paste0("plots/",sens,"_interv_in_paper_A.pdf"))
 
 ggplot(interv_rel_5yr %>% filter(interven%in% c(seq(12,20,1),24)), aes(x = factor(interven), y = percA, group = interven)) + 
   geom_boxplot(aes(fill = factor(interven))) + 
@@ -313,7 +319,7 @@ ggplot(interv_rel_5yr %>% filter(interven%in% c(seq(12,20,1),24)), aes(x = facto
   theme(legend.position = "none") + 
   scale_y_continuous("Percentage reduction in proportion resistant at 5yrs",limits = c(-0.01,100)) + 
   geom_point(data = interv_rel_5yr %>% filter(!is.na(percA_n)), aes(x = factor(interven), y = percA_n), pch = "*", size = 6)
-ggsave("plots/sensE_interv_in_paper_Aperc.pdf")
+ggsave(paste0("plots/",sens,"_interv_in_paper_Aperc.pdf"))
 
 ### Environment
 ggplot(interv_rel_5yr %>% filter(interven%in% c(seq(12,20,1),24)), aes(x = factor(interven), y = diffE, group = interven)) + 
@@ -330,7 +336,7 @@ ggplot(interv_rel_5yr %>% filter(interven%in% c(seq(12,20,1),24)), aes(x = facto
   geom_hline(yintercept = 0) + 
   theme(legend.position = "none") + 
   scale_y_continuous("Absolute difference in proportion resistant at 5yrs")
-ggsave("plots/sensE_interv_in_paper_E.pdf")
+ggsave(paste0("plots/",sens,"_interv_in_paper_E.pdf"))
 
 ggplot(interv_rel_5yr %>% filter(interven%in% c(seq(12,20,1),24)), aes(x = factor(interven), y = percE, group = interven)) + 
   geom_boxplot(aes(fill = factor(interven))) + 
@@ -347,7 +353,7 @@ ggplot(interv_rel_5yr %>% filter(interven%in% c(seq(12,20,1),24)), aes(x = facto
   theme(legend.position = "none") + 
   scale_y_continuous("Percentage reduction in proportion resistant at 5yrs",limits = c(-0.01,100)) + 
   geom_point(data = interv_rel_5yr %>% filter(!is.na(percE_n)), aes(x = factor(interven), y = percE_n), pch = "*", size = 6)
-ggsave("plots/sensE_interv_in_paper_Eperc.pdf")
+ggsave(paste0("plots/",sens,"_interv_in_paper_Eperc.pdf"))
 
 
 #### Table 
@@ -361,14 +367,14 @@ table_res <- interv_rel_5yr %>% filter(interven %in% c(seq(12,20,1),24)) %>%
   summarise(mean = round(median(value),1), 
             low = round(quantile(value, probs = 0.025),1),
             high = round(quantile(value, probs = 0.975),1)) 
-write.csv(table_res, "output/sensE_table_res.csv")
+write.csv(table_res, paste0("output/",sens,"_table_res.csv"))
 # For tables in paper
 table_res_out <- table_res %>%
   mutate(out = paste0(mean, "% (",low,"%, ", high,"%)")) %>% 
   select(country, i_name, out) %>% 
   pivot_wider(names_from = country, values_from = out) %>%
   arrange(name)
-write.csv(table_res_out, "output/sensE_table_res_for_paper.csv")
+write.csv(table_res_out, paste0("output/",sens,"_table_res_for_paper.csv"))
 
 
 table_res <- table_res %>% mutate(Setting = "")
@@ -385,7 +391,7 @@ ggplot(table_res, aes(x=i_name, y = mean, group = country)) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + 
   scale_y_continuous("Percentage reduction", lim = c(0,100)) + 
   theme(legend.position="bottom")
-ggsave("plots/sensE_intervention_impact_by_setting.jpeg", width = 15, height = 5)
+ggsave(paste0("plots/",sens,"_intervention_impact_by_setting.jpeg"), width = 15, height = 5)
 
 ggplot(table_res, aes(x=i_name, y = mean, group = Setting)) + 
   geom_bar(stat = "identity", position = "dodge", aes(fill = Setting)) + 
@@ -396,4 +402,31 @@ ggplot(table_res, aes(x=i_name, y = mean, group = Setting)) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + 
   scale_y_continuous("Percentage reduction", lim = c(0,100)) + 
   theme(legend.position="bottom")
-ggsave("plots/sensE_fig5.jpeg", width = 15, height = 5)
+ggsave(paste0("plots/",sens,"_fig5.jpeg"), width = 15, height = 5)
+
+##### Compare 
+table_res_sens <- read.csv(paste0("output/",sens,"_table_res.csv")) %>% mutate(model = "sens")
+table_res_base <- read.csv("output/table_res.csv") %>% mutate(model = "base")
+
+table_res_both <- rbind(table_res_base, table_res_sens) %>% 
+  select(interven, country, name, i_name, mean, model) %>%
+  pivot_wider(names_from = model, values_from = mean) %>%
+  mutate(diff = sens-base)
+
+table_res_both <- table_res_both %>% mutate(Setting = "")
+table_res_both[which(table_res_both$name == "percA"),"Setting"] <-  "Animals"
+table_res_both[which(table_res_both$name == "percH"),"Setting"] <-  "Humans"
+table_res_both[which(table_res_both$name == "percE"),"Setting"] <-  "Environment"
+
+ggplot(table_res_both, aes(x=i_name, y = diff, group = Setting)) + 
+  geom_bar(stat = "identity", position = "dodge", aes(fill = Setting)) + 
+  scale_x_discrete("Intervention") + 
+  facet_wrap(~country) + 
+  scale_fill_manual("Setting", breaks = c("Animals", "Humans", "Environment"), values = c("brown3","cornflowerblue","darkgoldenrod1")) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + 
+  scale_y_continuous("Difference in mean percentage\nintervention impact (sens - base)", lim = c(-50,50)) + 
+  theme(legend.position="bottom")
+
+
+
+

@@ -343,3 +343,69 @@ AMRmodel_interv <- function(times, init, u, new_u, parameters_in){
 
   return(Store_A)  
 }
+
+
+
+
+################################ AMR model with varying transmission  #####################################
+### Function to generate parameter samples limiting them to the pre-specified ranges 
+### INPUTS
+## as for AMR model above but including the time varying AH-HA transmission 
+### OUTPUTS
+## model predictions of populations
+
+AMRmodel_transmssion <- function(times, init, u, parameters_in, transmission_ahha){
+  # time parameters: years
+  # init = initial conditions 
+  # u = usage per year 
+  # parameters = needed parameters
+  # transmission_ahha = proxy to transmission changes = meat production per capita
+  # Checks on parameters
+  if(length(parameters_in) > 16){break}
+  
+  parameters <- list(LAMBDA_H = parameters_in[1],
+                     LAMBDA_A = parameters_in[2],
+                     LAMBDA_E = parameters_in[3],
+                     beta_HH = parameters_in[4],
+                     beta_AA = parameters_in[5],
+                     beta_EE = parameters_in[6],
+                     beta_AH = parameters_in[7],
+                     beta_HA = parameters_in[8],
+                     beta_EH = parameters_in[9],
+                     beta_EA = parameters_in[10],
+                     beta_AE = parameters_in[11],
+                     beta_HE = parameters_in[12],
+                     mu_H = parameters_in[13],
+                     mu_A = parameters_in[14],
+                     mu_E = parameters_in[15],
+                     paraset = parameters_in[16])
+  
+  ## initial vector
+  pops <- as.data.frame(matrix(0,1+length(times),length(init))) 
+  pops <- cbind(c(0,times), pops,parameters_in[16])
+  colnames(pops) <- c("time","H","A","E","para")
+  max_pop <- 100000
+  pops[1,] <- c(0,init*max_pop,parameters_in[16]) # initial conditions
+  
+  # usage in each environment
+  u_humans <- as.numeric(unlist(u %>% filter(source == "humans") %>% pull(normalise_kg)))
+  u_animals <- as.numeric(unlist(u %>% filter(source == "animals") %>% pull(normalise_kg)))
+  u_env <- as.numeric(unlist(u %>% filter(source == "environ") %>% pull(normalise_kg)))
+  
+  # transmission parameter
+  beta_ahha <- as.numeric(unlist(transmission_ahha %>% pull(value_norm)))
+  
+  # Simulate dynamics
+  for(i in times){
+    # At each time step = previous value + min of the proportion left to being all resistant
+    pops[i+1, "H"] <- pops[i, "H"] + min(max_pop - pops[i, "H"], (1 + parameters$LAMBDA_H*u_humans[i])*parameters$beta_HH*pops[i, "H"]*(max_pop - pops[i, "H"]) + (1 + parameters$LAMBDA_H*u_humans[i])*parameters$beta_AH*beta_ahha[i]*(max_pop - pops[i, "H"])*pops[i, "A"] + (1 + parameters$LAMBDA_H*u_humans[i])*parameters$beta_EH*(max_pop - pops[i, "H"])*pops[i, "E"] - parameters$mu_H*pops[i, "H"])
+    pops[i+1, "A"] <- pops[i, "A"] + min(max_pop - pops[i, "A"], (1 + parameters$LAMBDA_A*u_animals[i])*parameters$beta_AA*pops[i, "A"]*(max_pop - pops[i, "A"]) + (1 + parameters$LAMBDA_A*u_animals[i])*parameters$beta_HA*beta_ahha[i]*(max_pop - pops[i, "A"])*pops[i, "H"] + (1 + parameters$LAMBDA_A*u_animals[i])*parameters$beta_EA*(max_pop - pops[i, "A"])*pops[i, "E"] - parameters$mu_A*pops[i, "A"])
+    pops[i+1, "E"] <- pops[i, "E"] + min(max_pop - pops[i, "E"], (1 + parameters$LAMBDA_E*u_env[i])*parameters$beta_EE*pops[i, "E"]*(max_pop - pops[i, "E"]) + (1 + parameters$LAMBDA_E*u_env[i])*parameters$beta_HE*(max_pop - pops[i, "E"])*pops[i, "H"] + (1 + parameters$LAMBDA_E*u_env[i])*parameters$beta_AE*(max_pop - pops[i, "E"])*pops[i, "A"] - parameters$mu_E*pops[i, "E"])
+  }
+  
+  # Divide by max_pop to give proportions 
+  pops[,c("H","A","E")] <- pops[,c("H","A","E")]/max_pop
+  
+  return(pops)
+  
+}
