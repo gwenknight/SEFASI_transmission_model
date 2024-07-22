@@ -213,8 +213,9 @@ g1 <- ggplot(fits_av, aes(x=year, y = mean)) +
   scale_x_continuous("Year") + 
   scale_shape_manual(values = c(5,17,10,15,16,4,9,6,7,8,3,18), 
                      breaks = c("EARS-NET", "DANMAP", "UK-VARSS", "ESPAUR", 
-                                "literature1", "literature2", "literature3", "literature4", 
-                                "literature5", "literature 6", "literature7")) + 
+                                "[Huijbers, 2020]", "[Leonard, 2015]", "[Abdallah, 2022]", 
+                                "[Bada-AlambedjiI, 2006]", 
+                                  "[Vounba, 2015]", "[Diop-Ndiaye, 2014]", "Dakar Hospital data")) + 
   scale_color_manual(breaks = c("England", "Denmark", "Senegal"), values = c("#1b9e77", "#d95f02", "#7570b3")) 
 
 ggsave("plots/fig2.jpeg", width = 10, height = 5)

@@ -35,7 +35,7 @@ usage <- read.csv("data/input_usage.csv")
 p1 <- read.csv("output/parameter_set_100000.csv")[,-1]
 
 ### EXPLORE how to Run for SENEGAL
-## running from different years for each now now 
+# # running from different years for each now now
 # times <- seq(1,(2022 - init_senegal_year)*52,1) # start - 2022 weekly
 # 
 # A_big <- c()
@@ -48,7 +48,7 @@ p1 <- read.csv("output/parameter_set_100000.csv")[,-1]
 #   # Store
 #   A_big <- rbind(A_big, A)
 # }
-#
+# 
 # # Explore output
 # A_big_o <- A_big # store
 # A_big <- as.data.frame(A_big) %>% pivot_longer(cols = c("H","A","E"))
@@ -56,7 +56,7 @@ p1 <- read.csv("output/parameter_set_100000.csv")[,-1]
 # 
 # ggplot(A_big, aes(x=time, y = value, group = para)) + geom_line(aes(col = factor(para))) +
 #   facet_wrap(~name)
-# 
+
 # ggplot(A_big, aes(x=time, y = value, group = para)) + geom_line(aes(col = factor(para))) +
 #   facet_wrap(~name) +
 #   scale_y_continuous(lim = c(0,1))
