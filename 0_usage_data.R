@@ -34,10 +34,12 @@ ratio <- usage %>% select(country, year, source, kg) %>%
   group_by(country) %>% pivot_wider(names_from = source, values_from = kg) %>%
   mutate(ratio = animals / humans) %>%
   summarise(mean(ratio, na.rm = TRUE))
-# 0.279 / 0.263 for denmark and england
+# 0.279 / 0.263 for denmark and england => but these are outliers
+# globally 70% in animals, 30% in humans => ratio should be 2.3
+
 
 senegal_animal_approx <- u %>% filter(country == "senegal", source == "humans") %>%
-  mutate(kg = kg * 0.27) 
+  mutate(kg = kg * 2.3) # OLD: 0.27) 
 senegal_animal_approx$source <- "animals"
 
 # Add to other data 
@@ -189,3 +191,4 @@ ggplot(u_full, aes(x=year, y = normalise_kg, group = interaction(country,source)
   geom_vline(data = intro, aes(xintercept = intro_date), lty = "dashed") + 
   theme(legend.position="bottom")
 ggsave("plots/usage.jpg", width = 10, height = 10)
+
