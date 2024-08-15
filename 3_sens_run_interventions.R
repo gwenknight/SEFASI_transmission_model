@@ -18,15 +18,17 @@ library(here)
 setwd(here())
 theme_set(theme_bw())
 
-##### what sensitivity analysis are you running? 
-sens = "sensE" # not fitting to environmental data
-sens = "senstahha" # including transmission changing ahha parameters 
-
 ## Functions
 source("0_model_functions.R")
 
 ## initial conditions
 source("0_initial_conditions.R")
+
+###################################################################################
+##### what sensitivity analysis are you running? ###########################
+sens <- "sensE" # not fitting to environmental data
+#sens <- "senstahha" # including transmission changing ahha parameters 
+###################################################################################
 
 ## usage data
 usage <- read.csv("data/input_usage.csv")
@@ -68,7 +70,7 @@ registerDoParallel(cl)
 
 # Export things to the cluster
 #clusterExport(cl, c("epid","ode"))
-clusterExport(cl, c("usage","new_usage","best_100_para_senegal","init_senegal","init_senegal_year"))
+clusterExport(cl, c("sens", "usage","new_usage","best_100_para_senegal","init_senegal","init_senegal_year"))
 clusterEvalQ(cl, library("tidyverse", character.only = TRUE))
 clusterEvalQ(cl, source("0_model_functions.R"))
 #clusterEvalQ(cl, source("plot_functions/explore_and_plot_time_varying_usage.R"))
@@ -426,7 +428,7 @@ ggplot(table_res_both, aes(x=i_name, y = diff, group = Setting)) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + 
   scale_y_continuous("Difference in mean percentage\nintervention impact (sens - base)", lim = c(-50,50)) + 
   theme(legend.position="bottom")
-
+ggsave(paste0("plots/",sens,"_diff_base_sens.jpeg"), width = 15, height = 5)
 
 
 

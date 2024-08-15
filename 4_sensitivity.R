@@ -6,6 +6,14 @@ library(patchwork)
 library(here)
 setwd(here())
 theme_set(theme_bw())
+intervention_names <- c("H abx to zero","A abx to zero", "E. abx to zero",
+                        "HH spread to zero", "AA spread to zero", "EE spread to zero",
+                        "A-H spread to zero","EH spread to zero","E-H spread to zero",
+                        "E-A spread to zero","EA spread to zero",
+                        "Denmark package","England package","Senegal package",
+                        "Farm target","H target","E target",
+                        "A-H spread down 50%","Spread down 50%","Abx down 50%",
+                        "Spread down 30%","Spread down 20%","Spread down 10%", "Abx animals down 30%")
 
 # intervention impact 
 interv_rel <- read.csv("output/interv_rel.csv")[,-1]
@@ -75,8 +83,8 @@ g1 <- ggplot(gp_baseline) + geom_rect(aes(ymax = maxval, ymin = minval, xmin = x
 ggsave("plots/one_way_baseline_sensitivity.jpeg", width = 15)
 
 # Intervention impact 
-intervention_names[15] # farm as that is what we are interested in in SEFASI
-gp_farm <- gp %>% filter(interven == 15) %>% # H0 same for all interventions
+intervention_names[24] # AMU in animals for SEFASI
+gp_farm <- gp %>% filter(interven == 24) %>% # H0 same for all interventions
   select(country, name, limit, percH, interven) %>% pivot_wider(names_from = limit, values_from = percH) %>%
   mutate(width = abs(maxval - minval)) %>%
   group_by(country) %>%
@@ -118,7 +126,8 @@ gp_all <- gp %>%
          xmax = para_number + widthval/2) %>%
   mutate(interven_name = intervention_names[interven])
 
-ggplot(gp_all %>% filter(interven %in% seq(12,20,1))) + geom_rect(aes(ymax = maxval, ymin = minval, xmin = xmin, xmax = xmax, fill = name)) + 
+ggplot(gp_all %>% filter(interven %in% c(seq(12,20,1),24))) + 
+  geom_rect(aes(ymax = maxval, ymin = minval, xmin = xmin, xmax = xmax, fill = name)) + 
   theme(axis.text = element_text(size=12),
         axis.title.y=element_blank(), legend.position = 'bottom',
         legend.title = element_blank()) +
@@ -155,14 +164,14 @@ ggplot(interv_rel %>% filter(para == 320, interven > 20),
   scale_color_discrete(breaks = c(21,22,23), 
                        labels = intervention_names[c(21,22,23)],"Interventions")
 
-ggplot(interv_rel_5yr %>% filter(interven > 20), aes(x=interven, y = diffH, group = interven)) + 
+ggplot(interv_rel_5yr %>% filter(interven > 20, interven < 24), aes(x=interven, y = diffH, group = interven)) + 
   ggtitle("Difference at 5yrs in humans") + 
   geom_boxplot(aes(fill = factor(interven))) + 
   facet_wrap(~country,ncol = 1) + 
   scale_x_continuous(breaks = c(21,22,23), 
                      labels = intervention_names[c(21,22,23)],"Interventions") + 
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + 
-  scale_fill_manual(breaks = seq(21,23,1), values = c("lightgreen","lightgreen","lightgreen")) + 
+  scale_fill_manual(breaks = seq(21,23,1), values = c("lightgreen","lightgreen","lightgreen","lightgreen")) + 
   coord_flip() + 
   geom_hline(yintercept = 0) + 
   theme(legend.position = "none") + 

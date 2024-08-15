@@ -211,11 +211,11 @@ g1 <- ggplot(fits_av, aes(x=year, y = mean)) +
   guides(col="none") + 
   scale_y_continuous("Proportion resistance (over top 100 fits)") + 
   scale_x_continuous("Year") + 
-  scale_shape_manual(values = c(5,17,10,15,16,4,9,6,7,8,3,18), 
-                     breaks = c("EARS-NET", "DANMAP", "UK-VARSS", "ESPAUR", 
-                                "[Huijbers, 2020]", "[Leonard, 2015]", "[Abdallah, 2022]", 
-                                "[Bada-AlambedjiI, 2006]", 
-                                  "[Vounba, 2015]", "[Diop-Ndiaye, 2014]", "Dakar Hospital data")) + 
+  scale_shape_manual(values = c(5,17,10,15,16,4,9,6,7,8,3,18,1,2), 
+                     breaks = c("EARS-NET", "DANMAP", "[Huijbers, 2020]", "UK-VARSS", "ESPAUR", 
+                                "[Leonard, 2015]", "[Abdallah, 2022]", "[Vounba, 2018]", "[Vounba, 2019]", 
+                                "[Diop-Ndiaye, 2014]", "Dakar Hospital data", "[Dramowski, 2021]", 
+                                "[Breurec, 2016]", "[Ruppe, 2009]")) + 
   scale_color_manual(breaks = c("England", "Denmark", "Senegal"), values = c("#1b9e77", "#d95f02", "#7570b3")) 
 
 ggsave("plots/fig2.jpeg", width = 10, height = 5)
@@ -235,7 +235,7 @@ best_para <- rbind(best_100_para_senegal,
 write.csv(best_para, "output/best_para.csv")
 
 g2a <- ggplot(best_para %>% pivot_longer(cols = "LAMBDA_H":"mu_E"), 
-             aes(x=ctry, y = value)) + 
+              aes(x=ctry, y = value)) + 
   geom_violin(aes(fill=ctry),alpha = 0.4) +
   facet_wrap(~name, scales = "free", nrow = 3) + 
   scale_x_discrete("", labels = c("","","")) + 

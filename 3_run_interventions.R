@@ -274,11 +274,21 @@ gi2 <- ggplot(interv_rel_5yr %>% filter(interven%in%  c(seq(12,20,1),24)), aes(x
   geom_hline(yintercept = c(0,100)) + 
   theme(legend.position = "none") + 
   scale_y_continuous("Percentage reduction in proportion resistant at 5yrs",limits = c(-0.01,100)) + 
-  geom_point(data = interv_rel_5yr %>% filter(!is.na(percH_n)), aes(x = factor(interven), y = percH_n), pch = "*", size = 6)
+  geom_point(data = interv_rel_5yr %>% filter(!is.na(percH_n), interven %in%  c(seq(12,20,1),24)), aes(x = factor(interven), y = percH_n), pch = "*", size = 6)
 ggsave("plots/interv_in_paper_Hperc_.pdf")
 
 gi1 + gi2 + plot_annotation(tag_levels = "A")
 ggsave("plots/fig4.jpeg", width = 12, height = 7)
+
+## how many negative? 
+nn <- interv_rel_5yr %>% filter(!is.na(percH_n), interven %in%  c(seq(12,20,1),24))
+dim(nn)
+unique(nn$interven)
+intervention_names[unique(nn$interven)]
+table(nn$interven)
+unique(nn$country)
+table(nn[,c("country","interven")])
+
 
 ### Animals
 ggplot(interv_rel_5yr %>% filter(interven%in% c(seq(12,20,1),24)), aes(x = factor(interven), y = diffA, group = interven)) + 
