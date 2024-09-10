@@ -1,4 +1,6 @@
-### Initial conditions
+### Initial conditions: set up needed values for initial system setup #######
+######### Gwen Knight based on initial work by Ross Booton ####################
+########## May 2024 ###########################################################
 
 ### libraries
 library(tidyverse)

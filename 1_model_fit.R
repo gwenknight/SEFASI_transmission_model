@@ -1,4 +1,7 @@
-### Run model fit to data 
+#########  Run model fit to data ############################################## 
+######### Gwen Knight based on initial work by Ross Booton ####################
+########## May 2024 ###########################################################
+
 
 ### libraries
 library(tidyverse)

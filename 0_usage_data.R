@@ -1,4 +1,7 @@
-#### Usage data
+############# Usage data ######################################################
+######### Gwen Knight based on initial work by Ross Booton ####################
+########## May 2024 ###########################################################
+
 # Have to extend to all timepoints and fill in the gaps in the data 
 
 library(tidyverse)

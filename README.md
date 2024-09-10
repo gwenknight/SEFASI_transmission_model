@@ -21,7 +21,7 @@ This uses the same model runs, just compares them only to human and animal data.
 So run (1) - (2) as above (or just start again at 3, can use previous model runs)
 
 Then for (3): use 2_sensE_explore_model_output_big.R followed by
-          (4): use 3_sens_run_interventions.R with the sensitivity indicator set to "sensE"
+         (4): use 3_sens_run_interventions.R with the sensitivity indicator set to "sensE"
 
 (B) Include a time-varying transmission rate for animal <-> human ("AHHA")
 This uses new model runs. 

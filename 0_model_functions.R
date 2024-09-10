@@ -1,5 +1,7 @@
 ################################  AMRmodel #####################################
 ### Core AMR model functions of the three environments for Denmark, England and Senegal
+######### Gwen Knight based on initial work by Ross Booton ####################
+########## May 2024 ###########################################################
 
 ### AMR Model
 # parameters <- list(LAMBDA_H = 0.1,

@@ -1,4 +1,6 @@
-### Transmission change over time 
+############ Calculate how transmission might have changed over time ##########
+######### Gwen Knight #########################################################
+########## May 2024 ###########################################################
 
 library(tidyverse)
 theme_set(theme_bw())

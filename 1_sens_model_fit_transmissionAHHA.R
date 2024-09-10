@@ -1,4 +1,8 @@
-### Run model fit to data 
+######### Run model fit to data (sensitivity analysis) ####################### 
+######### WITH VARYING TRANSMISSION OVER TIME ################################ 
+######### Gwen Knight  #######################################################
+########## May 2024 ##########################################################
+
 
 ### libraries
 library(tidyverse)
