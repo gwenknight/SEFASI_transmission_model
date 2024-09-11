@@ -73,7 +73,7 @@ for(i in 1:3){
   joined_fit <- left_join(FULLDATA_mean,data_fitc) %>% filter(!is.na(proportion)) %>%
     ungroup() %>%
     mutate(distance = (proportion - mean_vl)^2)
-  dim(joined_fit) # should be 72(size of data) x nruns
+  dim(joined_fit) # should be size of data x nruns
   
   ls_summ <- joined_fit %>% group_by(ctry, paraset) %>%
     summarise(dist = sum(distance))
@@ -186,8 +186,6 @@ ggplot(best, aes(x=year, y = value, group = interaction(ctry,paraset))) +
 
 ggsave("plots/senstahha_model_fits_flip.jpeg")
 
-
-
 ### Averages
 fits_av <- best %>% group_by(year, ctry, name) %>%
   summarise(mean = mean(value),
@@ -202,7 +200,9 @@ data_fit[which(data_fit$name == "A"),"name"] <- "Animal"
 data_fit[which(data_fit$name == "H"),"name"] <- "Human"
 data_fit[which(data_fit$name == "E"),"name"] <- "Environment"
 
-g1 <- ggplot(fits_av, aes(x=year, y = mean)) + 
+fits_av_ahha <- fits_av
+
+g1 <- ggplot(fits_av_ahha, aes(x=year, y = mean)) + 
   geom_point() + 
   geom_errorbar(aes(ymin = min025, ymax = max975)) + 
   geom_point(data = data_fit, aes(x=year, y = percent/100, col = ctry, pch = source), 
@@ -211,15 +211,54 @@ g1 <- ggplot(fits_av, aes(x=year, y = mean)) +
   guides(col="none") + 
   scale_y_continuous("Proportion resistance (over top 100 fits)") + 
   scale_x_continuous("Year") + 
-  scale_shape_manual(values = c(5,17,10,15,16,4,9,6,7,8,3,18), 
-                     breaks = c("EARS-NET", "DANMAP", "UK-VARSS", "ESPAUR", 
-                                "[Huijbers, 2020]", "[Leonard, 2015]", "[Abdallah, 2022]", 
-                                "[Bada-AlambedjiI, 2006]", 
-                                "[Vounba, 2015]", "[Diop, 2014]", "Dakar Hospital data")) + 
+  scale_shape_manual(values = c(5,17,10,15,16,4,9,6,7,8,3,18,1,2), 
+                     breaks = c("EARS-NET", "DANMAP", "[Huijbers, 2020]", "UK-VARSS", "ESPAUR", 
+                                "[Leonard, 2015]", "[Abdallah, 2022]", "[Vounba, 2018]", "[Vounba, 2019]", 
+                                "[Diop-Ndiaye, 2014]", "Dakar Hospital data", "[Dramowski, 2021]", 
+                                "[Breurec, 2016]", "[Ruppe, 2009]")) + 
   scale_color_manual(breaks = c("England", "Denmark", "Senegal"), values = c("#1b9e77", "#d95f02", "#7570b3")) 
 
 ggsave("plots/senstahha_fig2.jpeg", width = 10, height = 5)
 
+##### Grab fits_av without transmission  
+best_100_senegal <- read_csv("output/best_100_senegal.csv")[,-1]
+best_100_denmark <- read_csv("output/best_100_denmark.csv")[,-1]
+best_100_england <- read_csv("output/best_100_england.csv")[,-1]
+
+best <- rbind(best_100_senegal %>% mutate(ctry = "Senegal", year = rep(c(init_senegal_year,rep(seq(init_senegal_year+1,2022,1),each = 52)),100)),
+              best_100_england %>% mutate(ctry ="England", year = rep(c(init_england_year,rep(seq(init_england_year+1,2022,1),each = 52)),100)),
+              best_100_denmark %>% mutate(ctry ="Denmark", year = rep(c(init_denmark_year,rep(seq(init_denmark_year+1,2022,1),each = 52)),100))) %>%
+  pivot_longer(cols = c("H","A","E"))
+
+fits_av <- best %>% group_by(year, ctry, name) %>%
+  summarise(mean = mean(value),
+            min025 = quantile(value,probs=c(0.025)), 
+            max975 = quantile(value,probs=c(0.975)))
+
+fits_av[which(fits_av$name == "A"),"name"] <- "Animal"
+fits_av[which(fits_av$name == "H"),"name"] <- "Human"
+fits_av[which(fits_av$name == "E"),"name"] <- "Environment"
+
+ggplot(fits_av_ahha, aes(x=year, y = mean)) + 
+  geom_point() + 
+  geom_errorbar(aes(ymin = min025, ymax = max975)) + 
+  geom_point(data = fits_av, col = "blue", aes(x=year+0.25, y = mean)) + 
+  geom_errorbar(data = fits_av, col = "blue",  aes(x=year+0.25, ymin = min025, ymax = max975)) + 
+  geom_point(data = data_fit, aes(x=year, y = percent/100, col = ctry, pch = source), 
+             size = 2.5) + 
+  facet_grid(ctry ~ name) + 
+  guides(col="none") + 
+  scale_y_continuous("Proportion resistance (over top 100 fits)") + 
+  geom_hline(yintercept = 0.6) + 
+  scale_x_continuous("Year") + 
+  scale_shape_manual(values = c(5,17,10,15,16,4,9,6,7,8,3,18,1,2), 
+                     breaks = c("EARS-NET", "DANMAP", "[Huijbers, 2020]", "UK-VARSS", "ESPAUR", 
+                                "[Leonard, 2015]", "[Abdallah, 2022]", "[Vounba, 2018]", "[Vounba, 2019]", 
+                                "[Diop-Ndiaye, 2014]", "Dakar Hospital data", "[Dramowski, 2021]", 
+                                "[Breurec, 2016]", "[Ruppe, 2009]")) + 
+  scale_color_manual(breaks = c("England", "Denmark", "Senegal"), values = c("#1b9e77", "#d95f02", "#7570b3")) 
+
+ggsave("plots/senstaaha_withoutT_fig2.jpeg", width = 10, height = 5)
 
 ############# Visualise parameter outputs
 best_100_para_senegal <- read_csv("output/senstahha_best_100_para_senegal.csv")[,-1]
@@ -262,3 +301,4 @@ ggsave("plots/senstahha_correlation_para.jpeg")
 
 ( g2a | p ) + plot_annotation(tag_levels = 'A') +  plot_layout(widths = c(3.5, 2.5))
 ggsave("plots/senstahha_fig3.jpeg", width = 16, height = 7)
+
