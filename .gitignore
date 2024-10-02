@@ -5,4 +5,5 @@
 .Rproj
 plots/
 output/
+data/
 .DS_Store
