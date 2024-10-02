@@ -54,8 +54,8 @@ england,England,H,2020,30158.27338,"4,192",13.9,ESPAUR,ESPAUR report 2022 Figure
 england,England,H,2021,31037.03704,"4,190",13.5,ESPAUR,ESPAUR report 2022 Figure 2.4 Data reference table,"cefotaxime, ceftazidime, cefpodoxime and ceftriaxone",number of bloodstream isolates in humans,I,https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/1118310/ESPAUR-report-2021-to-2022.pdf,,UK,
 england,England,E,2012,,,0.12,"[Leonard, 2015]",https://pubmed.ncbi.nlm.nih.gov/25832996/,third generation cephalosporins,coastal surface waters,C,https://pubmed.ncbi.nlm.nih.gov/25832996/,,england and wales,
 senegal,Senegal,E,2019,339,16,4.719764012,"[Abdallah, 2022]",,cefotaxime,non-human primates and non-fecal environmental samples,,https://www.frontiersin.org/articles/10.3389/fmicb.2022.838392/full,,,
-senegal,Senegal,A,2006,90,22,24.44444444,"[Bada-AlambedjiI, 2006]",,cefoxitin,chicken carcass,,https://www.scielo.br/j/bjm/a/LKdGpsbxFG9yyVvxKSBZZ4k/,,,
-senegal,Senegal,A,2018,50,5,10,"[Vounba, 2015]",,blaCTX-M encoding resistance to third-generation cephalosporins,live chicken,,https://www.liebertpub.com/doi/abs/10.1089/fpd.2017.2394?journalCode=fpd,,,
+senegal,Senegal,A,2010,58,5,8.620689655,"[Vounba, 2018]",,3GC,diseased chickens,,https://www.liebertpub.com/doi/10.1089/fpd.2017.2394,,,Full text available on research gate
+senegal,Senegal,A,2011,130,78,60,"[Vounba, 2019]",,enriched level in isolates (Table 2),healthy chickens,,https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6435184/,,,
 senegal,Senegal,H,2003,2445,219.072,8.96,"[Diop-Ndiaye, 2014]",Evolution de la résistance aux antibiotiques des Escherichia coli uropathogènes communautaires (2003-2013,cefotaxime,community UTI,,https://revue-uroandro.org/index.php/uro-andro/article/view/1/1,,,one minus sensitiviy to antibiotics of E coli
 senegal,Senegal,H,2004,2445,88.02,3.6,"[Diop-Ndiaye, 2014]",Evolution de la résistance aux antibiotiques des Escherichia coli uropathogènes communautaires (2003-2013,cefotaxime,community UTI,,https://revue-uroandro.org/index.php/uro-andro/article/view/1/1,,,
 senegal,Senegal,H,2005,2445,100.245,4.1,"[Diop-Ndiaye, 2014]",Evolution de la résistance aux antibiotiques des Escherichia coli uropathogènes communautaires (2003-2013,cefotaxime,community UTI,,https://revue-uroandro.org/index.php/uro-andro/article/view/1/1,,,
@@ -71,3 +71,6 @@ senegal,Senegal,H,2014,648,223,34.4,Dakar Hospital data,Dakar hospital data on b
 senegal,Senegal,H,2016,694,201,28.9,Dakar Hospital data,Dakar hospital data on blood and pus isolates for E coli resistant to 3GC (cefox + ceftria),,,,,,,
 senegal,Senegal,H,2018,625,254,40.1,Dakar Hospital data,Dakar hospital data on blood and pus isolates for E coli resistant to 3GC (cefox + ceftria),,,,,,,
 senegal,Senegal,H,2020,464,194,41.8,Dakar Hospital data,Dakar hospital data on blood and pus isolates for E coli resistant to 3GC (cefox + ceftria),,,,,,,
+senegal,Senegal,H,2014,35,22,62.85714286,"[Dramowski, 2021]",,3GC,bloodstream infections,,,,,data collected 2012-2016 so took mean
+senegal,Senegal,H,2007,69,55,79.71014493,"[Breurec, 2016]",,3GC,neonatal infections ,,,,,
+senegal,Senegal,H,2008,100,5,5,"[Ruppe, 2009]",,cefotaxime,otherwise healthy children,,,,,
