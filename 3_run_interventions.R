@@ -145,6 +145,11 @@ interv <- rbind(interv_senegal, interv_denmark, interv_england) %>%
 interv_0 <- interv %>% filter(interven == 0) %>% rename(baseline = interven,
                                                         H0 = H, A0 = A, E0 = E)
 
+# Baseline resistance: 
+interv_0 %>% filter(time == 0) %>% pivot_longer(cols = H0:E0) %>%
+  group_by(name, country) %>%
+  summarise(mean(value), sd(value))
+
 interv_rel <- left_join(interv %>% filter(interven > 0), interv_0) %>%
   mutate(diffH = H0 - H,
          diffA = A0 - A,
@@ -187,12 +192,12 @@ intervention_names <- c("H abx to zero","A abx to zero", "E. abx to zero",
 
 ## Explore stability after 5 yrs 
 ggplot(interv_rel %>% filter(para %in% c(14,186), 
-                             interven %in% c(16,20)), 
+                             interven %in% c(12,20)), 
        aes(x=time, y = H, group = interven)) + 
   geom_line(aes(col = factor(interven))) + 
   facet_wrap(~country, scales = "free") + 
-  scale_color_discrete(breaks = c(16,20), 
-                       labels = intervention_names[c(16,20)],"Interventions")
+  scale_color_discrete(breaks = c(12,20), 
+                       labels = intervention_names[c(12,20)],"Interventions")
 
 
 ggplot(interv_rel %>% filter(para %in% c(14,186), interven %in%  c(seq(12,20,1),24)), 

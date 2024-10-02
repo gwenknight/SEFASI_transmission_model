@@ -12,7 +12,7 @@ library(patchwork)
 library(ggcorrplot) # for ggcorrplot()
 library(here)
 setwd(here())
-theme_set(theme_bw(base_size =  11))
+theme_set(theme_bw(base_size =  14))
 
 # initial values
 source("0_initial_conditions.R")
@@ -206,7 +206,7 @@ g1 <- ggplot(fits_av, aes(x=year, y = mean)) +
   geom_point() + 
   geom_errorbar(aes(ymin = min025, ymax = max975)) + 
   geom_point(data = data_fit, aes(x=year, y = percent/100, col = ctry, pch = source), 
-             size = 2.5) + 
+             size = 3.5) + 
   facet_grid(ctry ~ name) + 
   guides(col="none") + 
   scale_y_continuous("Proportion resistance (over top 100 fits)") + 

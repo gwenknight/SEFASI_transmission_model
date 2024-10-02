@@ -5,7 +5,7 @@
 # Have to extend to all timepoints and fill in the gaps in the data 
 
 library(tidyverse)
-theme_set(theme_bw(base_size = 11))
+theme_set(theme_bw(base_size = 14))
 
 source("0_initial_conditions.R")
 min_year <- min(init_denmark_year, init_england_year, init_senegal_year)
@@ -185,13 +185,20 @@ colnames(intro) <- c("country","intro_date")
 intro$country<- c("Denmark","England","Senegal")
 intro$intro_date <- c(2005,2001,2003)
 
+# Years data
+usage_data_years = usage %>% select(country, year, source) %>% 
+  mutate(label = paste0(country,year,source))
+u_full <- u_full %>% mutate(label = paste0(tolower(country),year,source)) %>%
+  mutate(data_point = ifelse(label %in% usage_data_years$label,1,0))
+
 ggplot(u_full, aes(x=year, y = normalise_kg, group = interaction(country,source))) +
   geom_line(aes(col = source)) +
+  geom_point(data = u_full %>% filter(data_point == 1), aes(col = source)) +
   facet_wrap(~country, scales = "free") + 
   scale_x_continuous(limits = c(min_year, 2025),"Year") + 
   scale_color_manual("Setting", breaks = c("animals","environ", "humans"),values = c("brown3","cornflowerblue","darkgoldenrod1"), labels = c("Animals", "Environment","Humans")) + 
   scale_y_continuous("Normalised level (usage_x)") + 
   geom_vline(data = intro, aes(xintercept = intro_date), lty = "dashed") + 
   theme(legend.position="bottom")
-ggsave("plots/usage.jpg", width = 10, height = 10)
+ggsave("plots/usage.jpg", width = 10, height = 6)
 
