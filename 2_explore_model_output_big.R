@@ -257,8 +257,9 @@ g1 <- ggcorrplot(tl.cex = 7,type = "lower",cor(best_para[which(best_para$ctry ==
 g2 <- ggcorrplot(tl.cex = 7,type = "lower",cor(best_para[which(best_para$ctry == "Denmark"),1:15],use = "pairwise.complete.obs")) + ggtitle("Denmark")
 g3 <- ggcorrplot(tl.cex = 7,type = "lower",cor(best_para[which(best_para$ctry == "England"),1:15],use = "pairwise.complete.obs")) + ggtitle("England")
 
-p <- g1 + g2 + g3 + guide_area() + plot_layout(guides = "collect")
+p <- g2 + g1 + g3 + guide_area() + plot_layout(guides = "collect")
 ggsave("plots/correlation_para.jpeg")
 
 ( g2a | p ) + plot_annotation(tag_levels = 'A') +  plot_layout(widths = c(3.5, 2.5))
 ggsave("plots/fig3.jpeg", width = 16, height = 7)
+
