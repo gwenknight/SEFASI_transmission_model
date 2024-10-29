@@ -8,6 +8,9 @@ library(patchwork)
 library(here)
 setwd(here())
 theme_set(theme_bw())
+# initial values
+source("0_initial_conditions.R")
+
 intervention_names <- c("H abx to zero","A abx to zero", "E. abx to zero",
                         "HH spread to zero", "AA spread to zero", "EE spread to zero",
                         "A-H spread to zero","EH spread to zero","E-H spread to zero",
@@ -24,6 +27,12 @@ interv_rel_5yr <- interv_rel %>% filter(time == 260) %>%
   mutate(percH = 100 * diffH/H0,
          percA = 100 * diffA/A0,
          percE = 100 * diffE/E0) 
+
+interv_rel_5yr_24 <- interv_rel_5yr %>% filter(interven == 24) %>%
+  group_by(country) %>%
+  summarise(mean = median(percH),
+            min025 = quantile(percH,probs=c(0.025)), 
+            max975 = quantile(percH,probs=c(0.975)))
 
 # parameters
 p1 <- read.csv("output/parameter_set_100000.csv")[,-1]
@@ -55,10 +64,13 @@ gp <- left_join(pp, interv_rel_5yr[,c("country","para","interven","H0","percH")]
   group_by(country, interven, limit) %>%
   arrange(H0)
 
+ggplot(gp, aes(x=para, y = H0)) + geom_point()
+
 # Baseline analysis 
 widthval = 0.8
 gp_baseline <- gp %>% filter(interven == 1) %>% # H0 same for all interventions
-  select(country, name, limit, H0, interven) %>% pivot_wider(names_from = limit, values_from = H0) %>%
+  select(country, name, limit, H0, interven) %>% 
+  pivot_wider(names_from = limit, values_from = H0) %>%
   mutate(width = abs(maxval - minval)) %>%
   group_by(country) %>%
   arrange(country, width) %>%
@@ -67,11 +79,28 @@ gp_baseline <- gp %>% filter(interven == 1) %>% # H0 same for all interventions
   mutate(xmin = para_number - widthval/2,
          xmax = para_number + widthval/2)
 
-g1 <- ggplot(gp_baseline) + geom_rect(aes(ymax = maxval, ymin = minval, xmin = xmin, xmax = xmax, fill = name)) + 
+### Mean => to plot on this => average over the final year 
+best_100_senegal <- read_csv("output/best_100_senegal.csv")[,-1]
+best_100_denmark <- read_csv("output/best_100_denmark.csv")[,-1]
+best_100_england <- read_csv("output/best_100_england.csv")[,-1]
+best <- rbind(best_100_senegal %>% mutate(ctry = "Senegal", year = rep(c(init_senegal_year,rep(seq(init_senegal_year+1,2022,1),each = 52)),100)),
+              best_100_england %>% mutate(ctry ="England", year = rep(c(init_england_year,rep(seq(init_england_year+1,2022,1),each = 52)),100)),
+              best_100_denmark %>% mutate(ctry ="Denmark", year = rep(c(init_denmark_year,rep(seq(init_denmark_year+1,2022,1),each = 52)),100))) %>%
+  pivot_longer(cols = c("H","A","E"))
+
+### Averages 
+fits_av <- best %>% group_by(year, ctry, name) %>%
+  summarise(mean = mean(value),
+            min025 = quantile(value,probs=c(0.025)), 
+            max975 = quantile(value,probs=c(0.975))) %>% 
+  filter(year == 2022, name == "H") %>%
+  rename(country = ctry)
+
+g1 <- ggplot(gp_baseline) + 
+  geom_rect(aes(ymax = maxval, ymin = minval, xmin = xmin, xmax = xmax, fill = name)) + 
   theme(axis.text = element_text(size=12),
         axis.title.y=element_blank(), legend.position = 'bottom',
         legend.title = element_blank()) +
-  facet_wrap( ~ country, scales = "free") +
   scale_fill_manual(breaks =c("LAMBDA_H", "LAMBDA_A", "LAMBDA_E", 
                               "beta_HH", "beta_AA", "beta_EE", "beta_AH", "beta_HA", 
                               "beta_EH", "beta_EA", "beta_AE", "beta_HE", 
@@ -79,15 +108,23 @@ g1 <- ggplot(gp_baseline) + geom_rect(aes(ymax = maxval, ymin = minval, xmin = x
                     values = c("#ABDDA4","#66C2A5","lightgreen", 
                                "red","#9E0142","#D53E4F","#F46D43","#FDAE61","gold","#FEE08B","#FFFFBF","#E6F598",  
                                "#3288BD","#5E4FA2","mediumblue")) + 
-  scale_x_continuous(labels = NULL) +
+  geom_point(data = fits_av, aes(x=0, y = mean)) + 
+  geom_errorbar(data = fits_av, aes(x = 0, ymin = min025, ymax = max975)) + 
+  facet_wrap( ~ country) + 
+  scale_x_continuous("", labels = NULL) +
+  scale_y_continuous("") + 
   coord_flip() 
 
 ggsave("plots/one_way_baseline_sensitivity.jpeg", width = 15)
 
+
+
+
 # Intervention impact 
 intervention_names[24] # AMU in animals for SEFASI
 gp_farm <- gp %>% filter(interven == 24) %>% # H0 same for all interventions
-  select(country, name, limit, percH, interven) %>% pivot_wider(names_from = limit, values_from = percH) %>%
+  select(country, name, limit, percH, interven) %>% 
+  pivot_wider(names_from = limit, values_from = percH) %>%
   mutate(width = abs(maxval - minval)) %>%
   group_by(country) %>%
   arrange(country, width) %>%
@@ -108,8 +145,12 @@ g2 <- ggplot(gp_farm) + geom_rect(aes(ymax = maxval, ymin = minval, xmin = xmin,
                     values = c("#ABDDA4","#66C2A5","lightgreen", 
                                "red","#9E0142","#D53E4F","#F46D43","#FDAE61","gold","#FEE08B","#FFFFBF","#E6F598",  
                                "#3288BD","#5E4FA2","mediumblue")) + 
-  scale_x_continuous(labels = NULL) +
-  coord_flip() 
+  geom_point(data = interv_rel_5yr_24, aes(x=0, y = mean)) + 
+  geom_errorbar(data = interv_rel_5yr_24, aes(x = 0, ymin = min025, ymax = max975)) + 
+  facet_wrap( ~ country) +
+  coord_flip() + 
+  scale_x_continuous("", labels = NULL) +
+  scale_y_continuous("")
 ggsave("plots/one_way_farmint_sensitivity.jpeg", width = 15)
 
 g1 / g2 + plot_layout(guides = "collect") + plot_annotation(tag_levels = 'A') & theme(legend.position = 'bottom')
