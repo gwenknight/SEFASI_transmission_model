@@ -243,6 +243,44 @@ g2a <- ggplot(best_para %>% pivot_longer(cols = "LAMBDA_H":"mu_E"),
   scale_fill_manual("Country",breaks = c("England", "Denmark", "Senegal"), values = c("#1b9e77", "#d95f02", "#7570b3")) 
 ggsave("plots/best_paras_0705.pdf")
 
+### Update to group parameters better (reviewer's comments)
+grouped_para <- best_para %>% pivot_longer(cols = "LAMBDA_H":"mu_E") %>%
+  mutate(group = "")
+grouped_para[grep("beta", grouped_para$name),"group"] <- "Spread"
+grouped_para[grep("mu", grouped_para$name),"group"] <- "Clearance"
+grouped_para[grep("LAMBDA", grouped_para$name),"group"] <- "Antibiotics"
+grouped_para$name2 <- paste0(gsub("_", "[", grouped_para$name),"]")
+grouped_para$name2 <- gsub("LAMBDA", "lambda", grouped_para$name2)
+
+a <- ggplot(grouped_para %>% filter(group == "Spread"), 
+       aes(x=ctry, y = value)) + 
+  geom_violin(aes(fill=ctry),alpha = 0.4) +
+  facet_wrap(~ name2, scales = "free", nrow = 3,labeller = label_parsed) + 
+  scale_x_discrete("", labels = c("","","")) + 
+  scale_y_continuous("Best fit distribution") + 
+  ggtitle("Spread") + 
+  scale_fill_manual("Country",breaks = c("England", "Denmark", "Senegal"), values = c("#1b9e77", "#d95f02", "#7570b3")) 
+
+b <- ggplot(grouped_para %>% filter(group == "Clearance"), 
+            aes(x=ctry, y = value)) + 
+  geom_violin(aes(fill=ctry),alpha = 0.4) +
+  facet_wrap(~ name2, scales = "free", nrow = 3,labeller = label_parsed) + 
+  scale_x_discrete("", labels = c("","","")) + 
+  scale_y_continuous("Best fit distribution") + 
+  ggtitle("Clearance") + 
+  scale_fill_manual("Country",breaks = c("England", "Denmark", "Senegal"), values = c("#1b9e77", "#d95f02", "#7570b3")) 
+
+c <- ggplot(grouped_para %>% filter(group == "Antibiotics"), 
+            aes(x=ctry, y = value)) + 
+  geom_violin(aes(fill=ctry),alpha = 0.4) +
+  facet_wrap(~ name2, scales = "free", nrow = 3,labeller = label_parsed) + 
+  scale_x_discrete("", labels = c("","","")) + 
+  scale_y_continuous("Best fit distribution") + 
+  ggtitle("Antibiotics") + 
+  scale_fill_manual("Country",breaks = c("England", "Denmark", "Senegal"), values = c("#1b9e77", "#d95f02", "#7570b3")) 
+
+a + b + c + plot_layout(guides = "collect", width = c(4.5,1,1))
+ggsave("plots/new_Fig3.jpeg")
 
 ### What about the beta parameters? 
 g1 <- ggplot(best_para, aes(x=beta_HH, y = beta_AA, group = ctry)) + geom_point(aes(col = ctry)) + geom_smooth(method = lm, formula = y~x, aes(col = ctry, fill = ctry), alpha = 0.2) + scale_color_manual(breaks = c("England", "Denmark", "Senegal"), values = c("#1b9e77", "#d95f02", "#7570b3")) + scale_fill_manual(breaks = c("England", "Denmark", "Senegal"), values = c("#1b9e77", "#d95f02", "#7570b3")) 
