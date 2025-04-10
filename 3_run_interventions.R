@@ -282,6 +282,42 @@ ggsave("plots/interv_in_paper_Hperc_.pdf")
 gi1 + gi2 + plot_annotation(tag_levels = "A")
 ggsave("plots/fig4.jpeg", width = 12, height = 7)
 
+### Better colour scheme? 
+gi1 <- ggplot(interv_rel_5yr %>% filter(interven %in% c(seq(12,20,1),24)), aes(x=factor(interven), y = diffH, group = interven)) + 
+  geom_boxplot(aes(fill = factor(interven))) + 
+  #ggtitle("Difference at 5yrs in humans") + 
+  facet_wrap(~country,ncol = 1) + 
+  scale_x_discrete(breaks = c(seq(12,20,1),24), labels = intervention_names[c(12:20,24)],"Interventions") + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + 
+  scale_fill_manual(values = c("#fc8d59","#fc8d59","#fc8d59",# mix
+                               "#fc8d59","#fc8d59","#fc8d59",
+                               "#ffffbf","#ffffbf","#91bfdb",
+                               "#91bfdb")) + # abx targe
+  coord_flip() + 
+  geom_hline(yintercept = 0) + 
+  theme(legend.position = "none") + 
+  scale_y_continuous("Absolute difference in\nproportion resistant at 5yrs")
+
+
+gi2 <- ggplot(interv_rel_5yr %>% filter(interven%in%  c(seq(12,20,1),24)), aes(x = factor(interven), y = percH, group = interven)) + 
+  geom_boxplot(aes(fill = factor(interven))) + 
+  # ggtitle("Difference at 5yrs in humans") + 
+  facet_wrap(~country,ncol = 1) + 
+  scale_x_discrete(breaks = c(seq(12,20,1),24), labels = intervention_names[c(12:20,24)],"Interventions") + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + 
+  scale_fill_manual(values = c("#fc8d59","#fc8d59","#fc8d59",# mix
+                               "#fc8d59","#fc8d59","#fc8d59",
+                               "#ffffbf","#ffffbf","#91bfdb",
+                               "#91bfdb")) + # abx targe
+  coord_flip() + 
+  geom_hline(yintercept = c(0,100)) + 
+  theme(legend.position = "none") + 
+  scale_y_continuous("Percentage reduction in\nproportion resistant at 5yrs",limits = c(-0.01,100)) + 
+  geom_point(data = interv_rel_5yr %>% filter(!is.na(percH_n), interven %in%  c(seq(12,20,1),24)), aes(x = factor(interven), y = percH_n), pch = "*", size = 6)
+
+gi1 + gi2 #+ plot_annotation(tag_levels = "A")
+ggsave("plots/new_fig4.jpeg", width = 12, height = 7)
+
 ## how many negative? 
 nn <- interv_rel_5yr %>% filter(!is.na(percH_n), interven %in%  c(seq(12,20,1),24))
 dim(nn)
@@ -408,6 +444,23 @@ ggplot(table_res, aes(x=i_name, y = mean, group = Setting)) +
   scale_y_continuous("Percentage reduction", lim = c(0,100)) + 
   theme(legend.position="bottom")
 ggsave("plots/fig5.jpeg", width = 15, height = 5)
+
+### Rotate to match other plots 
+ggplot(table_res %>% filter(interven%in% c(seq(12,20,1),24)), 
+       aes(x=factor(interven), y = mean, group = Setting)) + 
+  geom_bar(stat = "identity", position = "dodge", aes(fill = Setting)) + 
+  geom_errorbar(position = "dodge",aes(ymin = mean, ymax = high, group = Setting)) + 
+  scale_x_discrete(breaks = c(seq(12,20,1),24), labels = intervention_names[c(12:20,24)],
+                   "Interventions") +
+  facet_wrap(~country, nrow = 3) + 
+  scale_fill_manual("Setting", 
+                    breaks = c("Animals", "Humans", "Environment"), 
+                    values = c("brown3","cornflowerblue","darkgoldenrod1")) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + 
+  scale_y_continuous("Percentage reduction", lim = c(0,100)) + 
+  theme(legend.position="bottom") + 
+  coord_flip() 
+ggsave("plots/new_fig5.jpeg", height = 15)
 
 
 

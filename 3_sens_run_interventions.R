@@ -23,8 +23,9 @@ source("0_initial_conditions.R")
 
 ###################################################################################
 ##### what sensitivity analysis are you running? ###########################
-sens <- "sensE" # not fitting to environmental data
+#sens <- "sensE" # not fitting to environmental data
 #sens <- "senstahha" # including transmission changing ahha parameters 
+sens <- "betaAHhigh" # looking at just high beta_AH values 
 ###################################################################################
 
 ## usage data
@@ -55,9 +56,10 @@ colnames(new_usage) <- colnames(usage)[1:dim(new_usage)[2]]
 #ggplot(new_usage, aes(x=year, y = normalise_kg, group = interaction(source,country))) + geom_line(aes(col = country))
 
 ######### run interventions
-best_100_para_senegal <- as.matrix(read.csv(paste0("output/",sens,"_best_100_para_senegal.csv")))[,-1]
-best_100_para_england <- as.matrix(read.csv(paste0("output/",sens,"_best_100_para_england.csv")))[,-1]
-best_100_para_denmark <- as.matrix(read.csv(paste0("output/",sens,"_best_100_para_denmark.csv")))[,-1]
+best_100_para_senegal <- (read_csv(paste0("output/",sens,"_best_100_para_senegal.csv")))[,-1]
+best_100_para_england <- (read.csv(paste0("output/",sens,"_best_100_para_england.csv")))[,-1]
+best_100_para_denmark <- (read.csv(paste0("output/",sens,"_best_100_para_denmark.csv")))[,-1]
+
 
 nc = detectCores()
 ### SENEGAL 
@@ -141,9 +143,15 @@ stopCluster(cl)
 ############################################################################################################################################
 ##################################################################################################################################
 ########## EXPLORE outputs 
-interv_senegal <- read.csv(paste0("fits_interv/",sens,"_senegal2472500.csv"))[,-1]
-interv_england <- read.csv(paste0("fits_interv/",sens,"_england2732500.csv"))[,-1]
-interv_denmark <- read.csv(paste0("fits_interv/",sens,"_denmark2212500.csv"))[,-1]
+if(!sens == "betaAHhigh"){
+  interv_senegal <- read.csv(paste0("fits_interv/",sens,"_senegal2472500.csv"))[,-1]
+  interv_england <- read.csv(paste0("fits_interv/",sens,"_england2732500.csv"))[,-1]
+  interv_denmark <- read.csv(paste0("fits_interv/",sens,"_denmark2212500.csv"))[,-1]
+} else{
+  interv_senegal <- read.csv("fits_interv/betaAHhigh_senegal222525.csv")[,-1]
+  interv_england <- read.csv("fits_interv/betaAHhigh_england983700.csv")[,-1]
+  interv_denmark <- read.csv("fits_interv/betaAHhigh_denmark885000.csv")[,-1]
+}
 interv_senegal$country <- "senegal"
 interv_england$country <- "england"
 interv_denmark$country <- "denmark"

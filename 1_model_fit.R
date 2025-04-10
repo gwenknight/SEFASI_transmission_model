@@ -23,7 +23,7 @@ usage <- read.csv("data/input_usage.csv")
 
 ##### Generate parameter samples
 #### ONLY FIRST TIME
-#set.seed(12345)
+# set.seed(12345)
 # p1<-sampling(100000) # go big to get lots as criterion remove lots
 # dim(p1) # 100,000 parameter sets
 # p1 <- cbind(p1, seq(1, dim(p1)[1],1))

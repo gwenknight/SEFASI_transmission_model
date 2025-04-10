@@ -220,6 +220,21 @@ g1 <- ggplot(fits_av, aes(x=year, y = mean)) +
 
 ggsave("plots/fig2.jpeg", width = 10, height = 5)
 
+### Just data
+ggplot(data_fit, aes(x=year, y = percent/100, col = ctry, pch = source)) + 
+  geom_point(size = 3.5) + 
+  facet_grid(ctry ~ name) + 
+  guides(col="none") + 
+  scale_y_continuous("Proportion resistance (over top 100 fits)", lim = c( 0,1)) + 
+  scale_x_continuous("Year", lim = c(2000, 2022)) + 
+  scale_shape_manual(values = c(5,17,10,15,16,4,9,6,7,8,3,18,1,2), 
+                     breaks = c("EARS-NET", "DANMAP", "[Huijbers, 2020]", "UK-VARSS", "ESPAUR", 
+                                "[Leonard, 2015]", "[Abdallah, 2022]", "[Vounba, 2018]", "[Vounba, 2019]", 
+                                "[Diop-Ndiaye, 2014]", "Dakar Hospital data", "[Dramowski, 2021]", 
+                                "[Breurec, 2016]", "[Ruppe, 2009]")) + 
+  scale_color_manual(breaks = c("England", "Denmark", "Senegal"), values = c("#1b9e77", "#d95f02", "#7570b3")) 
+
+ggsave("plots/fig2_justdata.jpeg", width = 10, height = 5)
 
 ############# Visualise parameter outputs
 best_100_para_senegal <- read_csv("output/best_100_para_senegal.csv")[,-1]
@@ -254,7 +269,7 @@ grouped_para$name2 <- gsub("LAMBDA", "lambda", grouped_para$name2)
 
 a <- ggplot(grouped_para %>% filter(group == "Spread"), 
        aes(x=ctry, y = value)) + 
-  geom_violin(aes(fill=ctry),alpha = 0.4) +
+  geom_violin(aes(fill=ctry),alpha = 0.4,draw_quantiles = c(0.5)) +
   facet_wrap(~ name2, scales = "free", nrow = 3,labeller = label_parsed) + 
   scale_x_discrete("", labels = c("","","")) + 
   scale_y_continuous("Best fit distribution") + 
@@ -263,7 +278,7 @@ a <- ggplot(grouped_para %>% filter(group == "Spread"),
 
 b <- ggplot(grouped_para %>% filter(group == "Clearance"), 
             aes(x=ctry, y = value)) + 
-  geom_violin(aes(fill=ctry),alpha = 0.4) +
+  geom_violin(aes(fill=ctry),alpha = 0.4,draw_quantiles = c(0.5)) +
   facet_wrap(~ name2, scales = "free", nrow = 3,labeller = label_parsed) + 
   scale_x_discrete("", labels = c("","","")) + 
   scale_y_continuous("Best fit distribution") + 
@@ -272,17 +287,31 @@ b <- ggplot(grouped_para %>% filter(group == "Clearance"),
 
 c <- ggplot(grouped_para %>% filter(group == "Antibiotics"), 
             aes(x=ctry, y = value)) + 
-  geom_violin(aes(fill=ctry),alpha = 0.4) +
+  geom_violin(aes(fill=ctry),alpha = 0.4,draw_quantiles = c(0.5)) +
   facet_wrap(~ name2, scales = "free", nrow = 3,labeller = label_parsed) + 
   scale_x_discrete("", labels = c("","","")) + 
   scale_y_continuous("Best fit distribution") + 
-  ggtitle("Antibiotics") + 
+  ggtitle("Abx. effect") + 
   scale_fill_manual("Country",breaks = c("England", "Denmark", "Senegal"), values = c("#1b9e77", "#d95f02", "#7570b3")) 
 
 a + b + c + plot_layout(guides = "collect", width = c(4.5,1,1))
 ggsave("plots/new_Fig3.jpeg")
 
-### What about the beta parameters? 
+#### Update to have new sensitivity analysis: beta_AH high, beta_HA low
+sens <- "betaAHhigh"
+s <- summary(best_para)
+s[,"   beta_AH"][3]
+s[,"   beta_HA"][3]
+# Filter to betaAH > median and beta_HA less than median
+b <- best_para %>% filter(beta_AH > 2.143e-06, beta_HA < 2.657e-06)
+100 *dim(b)[1] / dim(best_para)[1]
+table(b$ctry) # Most from Denmark
+write_csv(b %>% filter(ctry == "Senegal"), paste0("output/",sens,"_best_100_para_senegal.csv"))
+write_csv(b %>% filter(ctry == "England"), paste0("output/",sens,"_best_100_para_england.csv"))
+write_csv(b %>% filter(ctry == "Denmark"), paste0("output/",sens,"_best_100_para_denmark.csv"))
+
+
+1### What about the beta parameters? 
 g1 <- ggplot(best_para, aes(x=beta_HH, y = beta_AA, group = ctry)) + geom_point(aes(col = ctry)) + geom_smooth(method = lm, formula = y~x, aes(col = ctry, fill = ctry), alpha = 0.2) + scale_color_manual(breaks = c("England", "Denmark", "Senegal"), values = c("#1b9e77", "#d95f02", "#7570b3")) + scale_fill_manual(breaks = c("England", "Denmark", "Senegal"), values = c("#1b9e77", "#d95f02", "#7570b3")) 
 g2 <- ggplot(best_para, aes(x=beta_HH, y = beta_EE, group = ctry)) + geom_point(aes(col = ctry)) + geom_smooth(method = lm, formula = y~x, aes(col = ctry, fill = ctry), alpha = 0.2) + scale_color_manual(breaks = c("England", "Denmark", "Senegal"), values = c("#1b9e77", "#d95f02", "#7570b3")) + scale_fill_manual(breaks = c("England", "Denmark", "Senegal"), values = c("#1b9e77", "#d95f02", "#7570b3")) 
 g3 <- ggplot(best_para, aes(x=beta_EE, y = beta_AA, group = ctry)) + geom_point(aes(col = ctry)) + geom_smooth(method = lm, formula = y~x, aes(col = ctry, fill = ctry), alpha = 0.2) + scale_color_manual(breaks = c("England", "Denmark", "Senegal"), values = c("#1b9e77", "#d95f02", "#7570b3")) + scale_fill_manual(breaks = c("England", "Denmark", "Senegal"), values = c("#1b9e77", "#d95f02", "#7570b3")) 
